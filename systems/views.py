@@ -6,7 +6,7 @@ from django.core.paginator import Paginator, InvalidPage, EmptyPage
 
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import  redirect, get_object_or_404, render
+from django.shortcuts import  redirect, get_object_or_404, render, render_to_response
 from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.utils import translation
@@ -16,7 +16,7 @@ from django.forms.formsets import formset_factory
 import _mysql_exceptions
 
 import models
-from middleware.restrict_to_remote import allow_anyone,sysadmin_only, LdapGroupRequired
+from middleware.restrict_to_remote import allow_anyone,sysadmin_only
 
 import re
 from django.test.client import RequestFactory
@@ -24,8 +24,7 @@ from jinja2.filters import contextfilter
 
 import models
 from systems.models import System, SystemStatus
-from libs.jinja import render_to_response as render_to_response
-from middleware.restrict_to_remote import allow_anyone,sysadmin_only, LdapGroupRequired
+from middleware.restrict_to_remote import allow_anyone,sysadmin_only
 from Rack import Rack
 from MozInvAuthorization.KeyValueACL import KeyValueACL
 import simplejson as json
@@ -41,7 +40,6 @@ from core.range.utils import ip_to_range
 from core.site.models import Site
 
 from slurpee.constants import P_EXTRA
-from settings.scrape import config as external_config
 
 
 # Import resources
@@ -597,7 +595,6 @@ def system_show(request, id):
         'key_values': key_values,
         'is_release': is_release,
         'extra_externaldata': system.externaldata_set.filter(policy=P_EXTRA),
-        'external_config': external_config,
         'read_only': getattr(request, 'read_only', False),
     })
 

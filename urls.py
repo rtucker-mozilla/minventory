@@ -35,13 +35,6 @@ urlpatterns = patterns('',
     (r'^reports/', include('reports.urls')),
     (r'^dhcp/', include('dhcp.urls')),
     (r'^truth/', include('truth.urls')),
-    (r'^user_systems/', include('user_systems.urls')),
-    (r'^tasty/', include('api_v3.urls')),
-    (r'^en-US/tasty/', include('api_v3.urls')),
-    (r'^api/', include('api_v1.urls')),
-    (r'^api/v1/', include('api_v1.urls')),
-    (r'^api/v2/', include('api_v2.urls')),
-    (r'^tokenapi/', include('api_v2.urls')),
 
     (r'^en-US/mozdns/', include('mozdns.urls')),
     (r'^mozdns/', include('mozdns.urls')),
@@ -49,7 +42,6 @@ urlpatterns = patterns('',
     (r'^en-US/core/', include('core.urls')),
     (r'^core/', include('core.urls')),
 )
-
 if settings.DEBUG:
     urlpatterns += patterns('',
         (r'^static/(?P<path>.*)$', allow_anyone(static.serve),

@@ -20,17 +20,6 @@
 
 <div id='meta-data' data-system-id='{{system.id}}'></div>
 
-{% if system.externaldata_set.exists() %}
-    <div class='external-sources'>
-        <div id='sources-title'>Active External Data Sources</div>
-        {% for source in system.externaldata_set.all().values_list('source', flat=True).distinct() %}
-            <div class='external-source {{ source }}'>
-                <a href='{{external_config[source]['host-url'].format(hostname=system.hostname) }}'>{{ source }}</a>
-            </div>
-        {% endfor %}
-    </div>
-{% endif %}
-{% import 'slurpee/macros.html' as slurpee %}
 
 <div>
 <dl class="show">
@@ -40,8 +29,8 @@
 
 <dt>Services:</dt>
 <dd>
-{% for service in system.service_set.all() %}
-    <a href='{{ service.get_absolute_url() }}'>{{ service.name }}</a>{% if not loop.last %}, {% endif %}
+{% for service in system.service_set.all %}
+    <a href='{{ service.get_absolute_url }}'>{{ service.name }}</a>{% if not loop.last %}, {% endif %}
 {% endfor %}
 </dd>
 <div style="clear:both;"></div>
@@ -51,7 +40,7 @@
 <div style="clear:both;"></div>
 
 <dt>Serial:</dt>
-<dd>{{ slurpee.display_overlay_attr(system, 'serial', system.serial) }}</dd>
+<dd>{{ system.serial }}</dd>
 <div style="clear:both;"></div>
 
 <dt>Switch Ports:</dd>
@@ -62,12 +51,7 @@
 <dd>{{ system.patch_panel_port }}</dd>
 <div style="clear:both;"></div>
 <dt>OOB Ip:</dt>
-{% set oob_link = "<a href='http://{0}'>{0}</a>" %}
-{% if system.oob_ip and 'ssh' in system.oob_ip %}
-    <dd>{{ slurpee.display_overlay_attr(system, 'oob_ip', system.oob_ip) }}</dd>
-{% else %}
-    <dd>{{ slurpee.display_overlay_attr(system, 'oob_ip', oob_link.format(system.oob_ip), format_display=oob_link) }}</dd>
-{% endif %}
+<dd>{{ system.oob_ip }}</dd>
 <div style="clear:both;"></div>
 
 <dt>OOB switch &amp; port:</dt>
@@ -81,7 +65,7 @@
 <dt>Rack:</dt>
 {% if system.system_rack %}
     <dd>
-        <a href='{{system.system_rack.get_absolute_url()}}'>{{system.system_rack.name}}</a>
+        <a href='{{system.system_rack.get_absolute_url}}'>{{system.system_rack.name}}</a>
         <b> - </b> {{ system.rack_order }}
     </dd>
 {% else %}
@@ -92,7 +76,7 @@
 <dt>Rack Location:</dt>
 {% if system.system_rack and system.system_rack.site %}
     <dd>
-        <a href='{{system.system_rack.site.get_absolute_url()}}'>{{system.system_rack.site.name}}</a>
+        <a href='{{system.system_rack.site.get_absolute_url}}'>{{system.system_rack.site.name}}</a>
     </dd>
 {% else %}
     <dd><i>Not defined</i></dd>
@@ -141,21 +125,6 @@
 <dd>{{ system.allocation }}</dd>
 <div style="clear:both;"></div>
 
-{# Display P_EXTRA facts about this machine #}
-{% for ed in extra_externaldata %}
-    {% if ed.data != 'Not Specified' %}
-        {% if ed.source == 'infra-puppet-facts' %}
-            <dt class='infra-puppet-facts'>{{ ed.name }}:</dt>
-        {% elif ed.source == 'releng-puppet-facts' %}
-            <dt class='releng-puppet-facts'>{{ ed.name }}:</dt>
-        {% else %}
-            <dt style='color: red;'>{{ ed.name }}:</dt>
-        {% endif %}
-        <dd>{{ slurpee.display_extra_attr(ed, system) -}}</dd>
-        <div style="clear:both;"></div>
-    {% endif %}
-{% endfor %}
-
 
 {% if is_release %}
 	<dt>Releng Distro:</dt>
@@ -195,7 +164,7 @@
   <dd>{{ system.build_attribute.support_tier }}</dd>
   <div style="clear:both;"></div>
   <dt>Tinderbox Tree URL: </dt>
-  <dd><%= auto_link h(@system.build_attribute.tboxtree_url) %></dd>
+  <dd><%= auto_link "system.build_attribute.tboxtree_url" %></dd>
   <div style="clear:both;"></div>
   <dt>Repository Branch: </dt>
   <dd>{{ system.build_attribute.cvsbranch }}</dd>
@@ -210,12 +179,12 @@
   <dd>{{ system.build_attribute.closes_tree }}</dd>
   <div style="clear:both;"></div>
   <dt>Support Doc: </dt>
-  <dd><%= auto_link h(@system.build_attribute.support_doc) %></dd>
+  <dd><%= auto_link "system.build_attribute.support_doc" %></dd>
   <div style="clear:both;"></div>
 {% endif %}
 
     <div style='margin-top: 3em;'>
-        <a class='btn btn-small' href="{{ "systems.views.system_edit"|url(system.id) }}">Edit</a>
+        <a class='btn btn-small' href="{{ system.get_absolute_url }}">Edit</a>
     </div>
 </div>
 
@@ -231,24 +200,12 @@
         });
     });
 </script>
-<div id="system-dns-info">
-</div>
-
-<link href="{{ MEDIA_URL }}css/system_show_sreg.css" media="screen" rel="stylesheet" type="text/css" />
-<div class='show' style="clear:both;">
-    <div>
-        {% from 'core/core_macros.html' import display_sregs %}
-        {{ display_sregs(sregs) }}
-    </div>
-    <a class="btn btn-small add_new_sreg" href="">Add Static Registration</a>
-    <a class="btn btn-small" href="/core/registration/static/debug_combine_status_list/?search={{ system.hostname }}">Look for SREG objects</a>
-</div>
 
 <div>
 {% if system.notes %}
 <dl class="show">
 <dt>Notes: </dt>
-<dd style="float:left; font-size:medium; margin: 3px 0 0 -3px;"><pre style='width: 700px; white-space: normal;'>{{ system.notes_with_link }}</pre></dd>
+<dd style="float:left; font-size:medium; margin: 3px 0 0 -3px;"><pre style='width: 700px; white-space: normal;'>{{ system.notes_with_link|safe }}</pre></dd>
 <div style="clear:both;"></div>
 </dl>
 {% endif %}
@@ -267,7 +224,7 @@
     {% endfor %}
     </table>
     <div>
-    <!--Goto <a href='{{ system.get_edit_url() }}#tabs-4'>Add New Adapter</a>-->
+    <!--Goto <a href='{{ system.get_edit_url }}#tabs-4'>Add New Adapter</a>-->
     </div>
 
 </pre></dd>
@@ -276,12 +233,6 @@
 
 
 </pre></dd>
-<div class='show' style="clear:both;">
-    {% from 'core/core_macros.html' import display_kv %}
-    {{ display_kv(system.keyvalue_set.all().order_by('key'), obj=system, kv_type='system') }}
-</div>
-<div style="clear:both;"></div>
-</dl>
 </div>
 
 <dl class="show">
@@ -312,10 +263,8 @@
 
 <div style="clear:both;"></div>
 {% if not read_only %}
-<a href="{{ "systems.views.system_edit"|url(system.id) }}">Edit</a>
+<a href="{{ system.get_edit_url }}">Edit</a>
 {% endif %}
-<a href="{{ "systems.views.home"|url() }}">Back</a>
-
-{% include 'systems/system_registration.html' %}
+<a href="{{ "/" }}">Back</a>
 
 {% endblock %}

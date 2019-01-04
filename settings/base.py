@@ -1,7 +1,7 @@
 # This is your project's main settings file that can be committed to your
 # repo. If you need to override a setting locally, use settings_local.py
 
-from funfactory.settings_base import *
+#from funfactory.settings_base import *
 
 # Bundles is a dictionary of two dictionaries, css and js, which list css files
 # and js files that can be bundled together by the minify app.
@@ -24,21 +24,21 @@ MINIFY_BUNDLES = {
 }
 
 
-INSTALLED_APPS = list(INSTALLED_APPS) + [
+INSTALLED_APPS = [
     # Example code. Can (and should) be removed for actual projects.
     #'examples',
     'django.contrib.sessions',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.admin',
-    'django_nose',
-    'piston',
-    'south',
+#    'django_nose',
+#    'piston',
+#    'south',
     'slurpee',
     'systems',
     'oncall',
     'migrate_dns',
-    'user_systems',
+#    'user_systems',
     'dhcp',
     'truth',
     'api',
@@ -80,12 +80,10 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     'mozdns.delete_zone',
     #'debug_toolbar',
     'tastypie',
-    'tastytools',
     'reversion',
     'reversion_compare',
 ]
 
-INSTALLED_APPS.remove('product_details')
 
 
 # Because Jinja2 is the default template loader, add any non-Jinja templated
@@ -95,9 +93,7 @@ JINGO_EXCLUDE_APPS = [
     'build',
     'admin',
     'user_systems',
-    'tastytools',
 ]
-
 DJANGO_TEMPLATE_APPS = [
     'admin',
     'build',
@@ -119,7 +115,7 @@ DJANGO_TEMPLATE_APPS = [
 #    ('media/js/**.js', 'javascript'),
 # ]
 
-LOGGING = dict(loggers=dict(playdoh = {'level': logging.INFO}))
+# LOGGING = dict(loggers=dict(playdoh = {'level': logging.INFO}))
 AUTH_PROFILE_MODULE = 'systems.UserProfile'
 AUTHENTICATION_BACKENDS = (
         'django.contrib.auth.backends.RemoteUserBackend',
@@ -146,10 +142,11 @@ DEBUG_TOOLBAR_PANELS = (
     'debug_toolbar.panels.signals.SignalDebugPanel',
     'debug_toolbar.panels.logger.LoggingPanel',
 )
-MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + (
+MIDDLEWARE_CLASSES = (
     'middleware.disable_csrf.DisableCSRF',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'reversion.middleware.RevisionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
+#    'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.RemoteUserMiddleware',
     #'debug_toolbar.middleware.DebugToolbarMiddleware',

@@ -1,7 +1,6 @@
 from django.db.utils import DatabaseError
 from django.core.exceptions import ObjectDoesNotExist
 
-from user_systems.models import UserLicense, UnmanagedSystem
 from systems.models import System
 
 import csv
@@ -11,8 +10,6 @@ import re
 export_classes = dict(map(
     lambda c: (c.__name__, c),
     [
-        UserLicense,
-        UnmanagedSystem,
         System,
     ]
 ))

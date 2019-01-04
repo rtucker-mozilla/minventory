@@ -14,8 +14,7 @@ from django.template.defaulttags import URLNode
 from django.conf import settings
 from jinja2.filters import contextfilter
 from django.utils import translation
-from libs.jinja import jinja_render_to_response
-
+from django.shortcuts import render_to_response
 
 import re
 # Source: http://nedbatchelder.com/blog/200712/human_sorting.html
