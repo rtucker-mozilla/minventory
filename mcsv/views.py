@@ -9,7 +9,6 @@ from mcsv.exporter import csv_export, export_classes
 
 from systems.models import System
 
-from core.search.compiler.django_compile import compile_to_django
 
 import csv
 import re
@@ -63,7 +62,7 @@ def csv_format(request):
         'generator': generator
     })
 
-
+"""
 def ajax_csv_exporter(request):
     search = request.GET.get('search', None)
 
@@ -109,6 +108,7 @@ def ajax_csv_exporter(request):
 
     queue.seek(0)
     return HttpResponse(json.dumps({'csv_content': queue.readlines()}))
+"""
 
 
 def full_csv_exporter(request):

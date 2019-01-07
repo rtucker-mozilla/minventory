@@ -184,7 +184,7 @@
 {% endif %}
 
     <div style='margin-top: 3em;'>
-        <a class='btn btn-small' href="{{ system.get_absolute_url }}">Edit</a>
+        <a class='btn btn-small' href="{% 'system-edit' system.id }}">Edit</a>
     </div>
 </div>
 
@@ -263,7 +263,7 @@
 
 <div style="clear:both;"></div>
 {% if not read_only %}
-<a href="{{ system.get_edit_url }}">Edit</a>
+<a href="{% url 'system-edit' system.id %}">Edit</a>
 {% endif %}
 <a href="{{ "/" }}">Back</a>
 

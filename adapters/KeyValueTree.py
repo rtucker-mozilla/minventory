@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-from django.core.management import setup_environ
+import django
 import settings
-setup_environ(settings)
+django.setup()
 
 from systems.models import System, KeyValue
 from truth.models import Truth, KeyValue as TruthKeyValue

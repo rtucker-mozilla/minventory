@@ -25,7 +25,7 @@ from django.template.defaulttags import URLNode
 from django.conf import settings
 from jinja2.filters import contextfilter
 from django.utils import translation
-from libs.jinja import jinja_render_to_response
+from django.shortcuts import render_to_response
 from api_v2.keyvalue_handler import KeyValueHandler
 from core.registration.static.models import StaticReg
 from core.dhcp.render import render_sregs

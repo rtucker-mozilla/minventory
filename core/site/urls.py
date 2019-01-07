@@ -2,7 +2,7 @@ from django.conf.urls.defaults import patterns, url
 
 from core.site.views import *  # noqa
 
-urlpatterns = patterns(
+urlpatterns = (
     '',
     url(r'^$', SiteListView.as_view(), name='site-list'),
     url(r'^create/$', SiteCreateView.as_view()),

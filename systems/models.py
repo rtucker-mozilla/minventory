@@ -5,12 +5,10 @@ from django.db.models.signals import post_save
 from django.db.models.query import QuerySet
 from django.contrib.auth.models import User
 
-from dhcp.models import DHCP
 from settings import BUG_URL
 from mozdns.validation import validate_name
 
 from core.validation import validate_mac
-from core.site.models import Site
 from core.keyvalue.mixins import KVUrlMixin
 from core.keyvalue.models import KeyValue as BaseKeyValue
 from core.mixins import CoreDisplayMixin
@@ -27,8 +25,8 @@ class QuerySetManager(models.Manager):
     def get_query_set(self):
         return self.model.QuerySet(self.model)
 
-    def __getattr__(self, attr, *args):
-        return getattr(self.get_query_set(), attr, *args)
+    # def __getattr__(self, attr, *args):
+    #     return getattr(self.get_query_set(), attr, *args)
 
 
 class DirtyFieldsMixin(object):
@@ -254,7 +252,6 @@ class NetworkAdapter(models.Model):
     filename = models.CharField(max_length=64)
     option_host_name = models.CharField(max_length=64)
     option_domain_name = models.CharField(max_length=128)
-    dhcp_scope = models.ForeignKey(DHCP, null=True, blank=True)
     switch_id = models.IntegerField(null=True, blank=True)
 
     class Meta:
@@ -317,7 +314,6 @@ class ServerModel(models.Model):
 
 class SystemRack(models.Model):
     name = models.CharField(max_length=255)
-    site = models.ForeignKey(Site, null=True)
     location = models.ForeignKey('Location', null=True)
 
     search_fields = ('name', 'site__name')
@@ -327,8 +323,9 @@ class SystemRack(models.Model):
         ordering = ['name']
 
     def __str__(self):
-        return "%s - %s" % (
-            self.name, self.site.full_name if self.site else ''
+        return "%s" % (
+            #self.name, self.site.full_name if self.site else ''
+            self.name
         )
 
     def __unicode__(self):

@@ -8,7 +8,7 @@ from systems.models import System
 from middleware.restrict_to_remote import allow_anyone
 
 from forms import ReportForm
-from libs.jinja import jinja_render_to_response
+from django.shortcuts import render_to_response
 
 @allow_anyone
 def report_home(request):

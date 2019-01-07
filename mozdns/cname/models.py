@@ -7,7 +7,6 @@ from mozdns.models import MozdnsRecord, LabelDomainMixin
 from mozdns.validation import validate_name
 from mozdns.search_utils import smart_fqdn_exists
 
-import reversion
 
 from gettext import gettext as _
 
@@ -169,4 +168,3 @@ class CNAME(MozdnsRecord, LabelDomainMixin):
 
         # Should SRV's not be allowed to point to a CNAME? /me looks for an RFC
 
-reversion.register(CNAME)

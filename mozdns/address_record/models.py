@@ -6,7 +6,6 @@ from mozdns.cname.models import CNAME
 from mozdns.ip.models import Ip
 from mozdns.models import MozdnsRecord, LabelDomainMixin
 
-import reversion
 
 
 class BaseAddressRecord(Ip, MozdnsRecord):
@@ -163,4 +162,3 @@ class AddressRecord(BaseAddressRecord, LabelDomainMixin):
         )
 
 
-reversion.register(AddressRecord)

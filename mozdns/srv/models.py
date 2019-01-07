@@ -8,7 +8,6 @@ from mozdns.validation import validate_srv_priority, validate_srv_weight
 from mozdns.validation import validate_srv_name
 from mozdns.validation import validate_srv_target
 
-import reversion
 
 from gettext import gettext as _
 
@@ -73,4 +72,3 @@ class SRV(MozdnsRecord):
         return 'SRV'
 
 
-reversion.register(SRV)

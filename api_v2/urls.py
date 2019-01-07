@@ -21,7 +21,7 @@ system_rack_handler = Resource(SystemRackHandler)
 system_status_handler = Resource(SystemStatusHandler)
 oncall_handler = Resource(OncallHandler)
 
-urlpatterns = patterns('',
+urlpatterns = ('',
     url(r'^dhcp/(?P<dhcp_scope>[^/]+)/(?P<dhcp_action>[^/]+)', cached_resource(dhcp_handler)),
     url(r'^dhcp/', cached_resource(dhcp_handler)),
     url(r'^reverse_dns/(?P<reverse_dns_zone>[^/]+)/(?P<reverse_dns_action>[^/]+)', cached_resource(reverse_dns_handler)),

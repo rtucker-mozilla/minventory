@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 
 from mozdns.models import MozdnsRecord, LabelDomainMixin
 
-import reversion
 
 from gettext import gettext as _
 import re
@@ -76,4 +75,3 @@ class SSHFP(MozdnsRecord, LabelDomainMixin):
         # Fix that ^
 
 
-reversion.register(SSHFP)

@@ -6,7 +6,6 @@ from mozdns.models import MozdnsRecord, LabelDomainMixin
 from mozdns.validation import validate_txt_data
 
 
-import reversion
 
 
 class TXT(MozdnsRecord, LabelDomainMixin):
@@ -73,4 +72,3 @@ class TXT(MozdnsRecord, LabelDomainMixin):
         )
 
 
-reversion.register(TXT)

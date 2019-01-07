@@ -11,7 +11,6 @@ from core.keyvalue.utils import AuxAttr
 
 from core.task.models import Task
 
-import reversion
 
 from gettext import gettext as _
 from string import Template
@@ -235,7 +234,6 @@ class SOA(models.Model, ObjectUrlMixin, DisplayMixin):
         return "<SOA '{0}'>".format(self)
 
 
-reversion.register(SOA)
 
 
 class SOAKeyValue(KeyValue):
@@ -260,4 +258,3 @@ class SOAKeyValue(KeyValue):
                                                ", ".join(false_values)))
 
 
-reversion.register(SOAKeyValue)

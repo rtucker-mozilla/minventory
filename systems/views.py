@@ -28,19 +28,7 @@ from middleware.restrict_to_remote import allow_anyone,sysadmin_only
 from Rack import Rack
 from MozInvAuthorization.KeyValueACL import KeyValueACL
 import simplejson as json
-from mozdns.utils import ensure_label_domain, prune_tree
-from mozdns.view.models import View
 from forms import SystemForm
-
-from core.group.models import Group
-from core.registration.static.models import StaticReg
-from core.registration.static.forms import StaticRegAutoForm
-from core.hwadapter.forms import HWAdapterForm
-from core.range.utils import ip_to_range
-from core.site.models import Site
-
-from slurpee.constants import P_EXTRA
-
 
 # Import resources
 from api_v2.dhcp_handler import DHCPHandler
@@ -566,15 +554,8 @@ def system_show(request, id):
     else:
         key_values = system.keyvalue_set.exclude(key__istartswith='nic.')
 
-    sregs = StaticReg.objects.filter(system=system)
-    groups = Group.objects.all()
-    sreg_form = StaticRegAutoForm(prefix='sreg', initial={
-        'system': system,
-        'fqdn': system.hostname
-    })
-    blank_hw_form = HWAdapterForm(prefix='add-hw')  # noqa Used for ui dialog for creation
-    HWAdapterFormset = formset_factory(HWAdapterForm)
-    hw_formset = HWAdapterFormset(prefix='hwadapters')
+    sregs = []
+    groups = []
 
     object_search_str = "(/^{0}$".format(system)
     for sreg in filter(lambda sreg: not sreg.decommissioned, sregs):
@@ -586,15 +567,9 @@ def system_show(request, id):
         'system': system,
         'object_search_str': object_search_str,
         'sregs': sregs,
-        'sreg_form': sreg_form,
-        'hw_formset': hw_formset,
-        'blank_hw_form': blank_hw_form,
         'groups': groups,
-        'ip_to_range': ip_to_range,
-        'adapters': adapters,
         'key_values': key_values,
         'is_release': is_release,
-        'extra_externaldata': system.externaldata_set.filter(policy=P_EXTRA),
         'read_only': getattr(request, 'read_only', False),
     })
 
@@ -634,7 +609,7 @@ def system_view(request, template, data, instance=None):
 
     return render_to_response(template,
         data,
-        request
+        RequestContext(request)
     )
 
 
@@ -645,17 +620,9 @@ def system_new(request):
 @csrf_exempt
 def system_edit(request, id):
     system = get_object_or_404(models.System, pk=id)
-    dhcp_scopes = None
-    try:
-        h = DHCPHandler()
-        dhcp_scopes = h.read(request, dhcp_scope='phx-vlan73', dhcp_action='get_scopes_with_names')
-    except Exception, e:
-        print e
-        pass
 
     return system_view(request, 'systems/system_edit.html', {
         'system': system,
-        'dhcp_scopes':dhcp_scopes,
         'revision_history':models.SystemChangeLog.objects.filter(system=system).order_by('-id')
         },
         system
@@ -905,6 +872,23 @@ def ajax_racks_by_site(request, site_pk):
         'filter_decom': filter_decom
     })
 
+def server_model_create(request):
+    from forms import ServerModelForm
+    initial = {}
+    if request.method == 'POST':
+        form = ServerModelForm(request.POST, instance=server_model)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect('/systems/server_models/')
+    else:
+        form = ServerModelForm(instance=server_model)
+
+    return render_to_response(
+        'generic_form.html',
+        {
+            'form': form,
+        },
+        RequestContext(request))
 def server_model_edit(request, object_id):
     server_model = get_object_or_404(models.ServerModel, pk=object_id)
     from forms import ServerModelForm

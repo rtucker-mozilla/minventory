@@ -9,7 +9,7 @@ import models
 from datetime import datetime
 
 from systems.constants import VALID_SYSTEM_SUFFIXES
-from core.site.models import Site
+# from core.site.models import Site
 
 import re
 
@@ -28,18 +28,19 @@ class SystemRackForm(forms.ModelForm):
 class ServerModelForm(forms.ModelForm):
     class Meta:
         model = models.ServerModel
+        fields = '__all__'
 
 class AllocationForm(forms.ModelForm):
     class Meta:
         model = models.Allocation
+        fields = '__all__'
 
 class RackFilterForm(forms.Form):
 
     site = forms.ChoiceField(
         required=False,
-        choices=[('', 'ALL')] + [
-            (m.id, m) for m in Site.objects.all()
-        ])
+        choices=[('', 'ALL')]
+    )
     status = forms.ChoiceField(
         required=False,
         choices=[('', 'ALL')] +
@@ -48,8 +49,8 @@ class RackFilterForm(forms.Form):
     rack = forms.ChoiceField(
         required=False,
         choices=[('', 'ALL')] + [
-            (m.id, '{0} - {1}'.format(m.site.full_name, m.name) if m.site else '' + ' ' +  m.name)
-            for m in models.SystemRack.objects.all().order_by('site', 'name')
+            (m.id, '{0} - {1}'.format(m.name, m.name) if m.name else '' + ' ' +  m.name)
+            for m in models.SystemRack.objects.all().order_by('name')
         ]
     )
 
@@ -62,7 +63,7 @@ class RackFilterForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(RackFilterForm, self).__init__(*args, **kwargs)
-        self.fields['site'].choices = [('', 'ALL')] + [(m.id, m.full_name) for m in Site.objects.all()]
+        self.fields['site'].choices = [('', 'ALL')]
         self.fields['status'].choices = [('', 'ALL')] + [(m.id, m) for m in models.SystemStatus.objects.all()]
         self.fields['rack'].choices = [('', 'ALL')] + [
             (m.id, '{0} - {1}'.format(m.site.full_name, m.name) if m.site else '' + ' ' +  m.name)
