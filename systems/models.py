@@ -13,6 +13,7 @@ import datetime
 import re
 import socket
 import math
+import string
 
 from django.db import models
 from django.db.models import Q
@@ -144,6 +145,58 @@ def validate_mac(mac):
             "Mac Address {0} is not in valid format".format(mac)
         )
     return mac
+
+def validate_label(label, valid_chars=None):
+    """Validate a label.
+        :param label: The label to be tested.
+        :type label: str
+        "Allowable characters in a label for a host name are only ASCII
+        letters, digits, and the '-' character."
+        "Labels may not be all numbers, but may have a leading digit"
+        "Labels must end and begin only with a letter or digit"
+        -- `RFC <http://tools.ietf.org/html/rfc1912>`__
+        "[T]he following characters are recommended for use in a host
+        name: "A-Z", "a-z", "0-9", dash and underscore"
+        -- `RFC <http://tools.ietf.org/html/rfc1033>`__
+    """
+    _name_type_check(label)
+
+    if not valid_chars:
+        # "Allowable characters in a label for a host name are only
+        # ASCII letters, digits, and the `-' character." "[T]he
+        # following characters are recommended for use in a host name:
+        # "A-Z", "a-z", "0-9", dash and underscore"
+        valid_chars = string.ascii_letters + "0123456789" + "-" + "_"
+
+    # Labels may not be all numbers, but may have a leading digit TODO
+    # Labels must end and begin only with a letter or digit TODO
+
+    for char in label:
+        if char == '.':
+            raise ValidationError("Invalid name {0}. Please do not span "
+                                  "multiple domains when creating records."
+                                  .format(label))
+        if valid_chars.find(char) < 0:
+            raise ValidationError("Invalid name {0}. Character '{1}' is "
+                                  "invalid.".format(label, char))
+
+    end_chars = string.ascii_letters + "0123456789"
+
+    if (
+        label and
+        not label.endswith(tuple(end_chars)) or
+        # SRV records can start with '_'
+        not label.startswith(tuple(end_chars + '_'))
+    ):
+        raise ValidationError(
+            "Labels must end and begin only with a letter or digit"
+        )
+
+    return
+
+def _name_type_check(name):
+    if type(name) not in (str, unicode):
+        raise ValidationError("Error: A name must be of type str.")
 
 def validate_name(fqdn):
     """Run test on a name to make sure that the new name is constructed
