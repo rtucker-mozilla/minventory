@@ -1,4 +1,0 @@
-{{ object.fqdn }}
-{{ object.label }}
-{{ object.txt_data }}
-{{ object.domain.name }}

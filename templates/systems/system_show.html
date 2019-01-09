@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% block head %}
+{% load static %}
 <script type="text/javascript" src="/static/javascripts/master_form_utils.js"></script>
 <script type="text/javascript" src="/static/javascripts/system_show.js"></script>
 <script type="text/javascript" src="/static/javascripts/dns_form_utils.js"></script>
-<link href="{{ MEDIA_URL }}css/record.css" media="screen" rel="stylesheet" type="text/css" />
-<link href="{{ MEDIA_URL }}css/system.css" media="screen" rel="stylesheet" type="text/css" />
-<script src="{{ MEDIA_URL }}javascripts/view_blink.js"></script>
+<link href="{% static "css/record.css" %}" media="screen" rel="stylesheet" type="text/css" />
+<link href="{% static "css/system.css" %}" media="screen" rel="stylesheet" type="text/css" />
+<script src="{% static "javascripts/view_blink.js" %}"></script>
 <script>
     $(document).ready(function (){
         $('.system-external-data').myTooltip();
@@ -184,7 +185,7 @@
 {% endif %}
 
     <div style='margin-top: 3em;'>
-        <a class='btn btn-small' href="{% 'system-edit' system.id }}">Edit</a>
+        <a class='btn btn-small' href="{% url 'system-edit' system.id %}">Edit</a>
     </div>
 </div>
 
@@ -209,28 +210,6 @@
 <div style="clear:both;"></div>
 </dl>
 {% endif %}
-
-<div style="clear:both;">
-<dl class="show">
-<dt>Network Adapters: </dt>
-<dd style="float:left; font-size:medium; margin: 3px 0 0 -3px;">
-<pre>
-    {{ adapter }}
-    <table>
-    <tr><th>NIC</th><th>IP Address</th><th>Mac Address</th><th>DHCP Scope</th><th>DHCP Hostname</th></tr>
-    {% for adapter in adapters %}
-        <tr><td>{{adapter.adapter_name}}</td><td>{{ adapter.ipv4_address }}</td><td>{{ adapter.mac_address }}</td><td>{{ adapter.dhcp_scope }}</td><td>{{ adapter.option_hostname }}</td></tr>
-
-    {% endfor %}
-    </table>
-    <div>
-    <!--Goto <a href='{{ system.get_edit_url }}#tabs-4'>Add New Adapter</a>-->
-    </div>
-
-</pre></dd>
-<div style="clear:both;"></div>
-</dl>
-
 
 </pre></dd>
 </div>

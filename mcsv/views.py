@@ -29,18 +29,18 @@ def ajax_csv_importer(request):
     raw_csv_data = request.POST.get('csv-data', '')
     primary_attr = request.POST.get('primary-attr', 'hostname')
 
-    @transaction.commit_manually
+    #@transaction.commit_manually
     def do_csv_import(data):
         try:
             return csv_import(data, primary_attr=primary_attr, save=save)
         except ValidationError, e:
-            transaction.rollback()
+            #transaction.rollback()
             return {'error': e.messages}
         except Exception, e:
-            transaction.rollback()
+            #transaction.rollback()
             return {'error': ['Error: ' + e.message]}
-        finally:
-            transaction.commit()
+        # finally:
+            # transaction.commit()
 
     result = do_csv_import(raw_csv_data)
 

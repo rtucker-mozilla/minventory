@@ -1,7 +1,8 @@
 from django.conf.urls import url, include
 from django.conf import settings
 #from django.contrib import admin
-from django.views import static
+from django.conf.urls.static import static
+from rest_framework import routers
 
 from middleware.restrict_to_remote import allow_anyone
 
@@ -9,6 +10,10 @@ from middleware.restrict_to_remote import allow_anyone
 # from django.contrib import admin
 #admin.autodiscover()
 import systems.views as system_views
+import invapi.views as apiviews
+
+router = routers.DefaultRouter()
+router.register(r'systems', apiviews.SystemViewSet)
 
 
 urlpatterns = [
@@ -21,6 +26,7 @@ urlpatterns = [
 
     # Uncomment the next line to enable the admin:
 #    url(r'^admin/', include(admin.site.urls)),
+    url(r'^api/', include(router.urls)),
     url(r'^$', system_views.home, name='system-home'),
     url(r'^en-US/$', system_views.home, name='system-home'),
     url(r'^a(\d+)/$', system_views.system_show_by_asset_tag),
@@ -35,7 +41,4 @@ urlpatterns = [
 
 ]
 if settings.DEBUG:
-    urlpatterns += [
-        url(r'^static/(?P<path>.*)$', allow_anyone(static.serve),
-            {'document_root': settings.STATIC_DOC_ROOT}),
-    ]
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

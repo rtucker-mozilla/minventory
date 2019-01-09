@@ -1,8 +1,6 @@
 from piston.handler import BaseHandler, rc
 from systems.models import System, SystemRack,SystemStatus,NetworkAdapter,KeyValue
 from truth.models import Truth, KeyValue as TruthKeyValue
-from dhcp.DHCP import DHCP as DHCPInterface
-from dhcp.models import DHCP
 from MacroExpansion import MacroExpansion
 from KeyValueTree import KeyValueTree
 import re
@@ -12,7 +10,7 @@ except:
     from django.utils import simplejson as json
 from django.test.client import Client
 
-from MozInvAuthorization.KeyValueACL import KeyValueACL 
+from MozInvAuthorization.KeyValueACL import KeyValueACL
 
 from settings import API_ACCESS
 
@@ -88,7 +86,7 @@ class KeyValueHandler(BaseHandler):
         input_regex_array.append(re.compile('^dhcp\.scope\.start$'))
         output_regex_array.append(re.compile(ipv4_regex))
         error_message_array.append('Requires IP Address')
-        
+
         input_regex_array.append(re.compile('^dhcp\.scope\.end$'))
         output_regex_array.append(re.compile(ipv4_regex))
         error_message_array.append('Requires IP Address')
@@ -120,7 +118,7 @@ class KeyValueHandler(BaseHandler):
         input_regex_array.append(re.compile('^dhcp\.pool\.allow_booting\.\d+$'))
         output_regex_array.append(re.compile(true_false_regex))
         error_message_array.append('Requires True|False')
-        
+
         input_regex_array.append(re.compile('^dhcp\.pool\.allow_bootp\.\d+$'))
         output_regex_array.append(re.compile(true_false_regex))
         error_message_array.append('Requires True|False')
@@ -164,7 +162,7 @@ class KeyValueHandler(BaseHandler):
             post_key = request.POST.get('key')
             post_value = request.POST.get('value')
             system_id = request.POST.get('system_id')
-            key_validated, validation_error_string = self.validate(post_key, post_value) 
+            key_validated, validation_error_string = self.validate(post_key, post_value)
             if re.search('^nic\.(\d+)\.ipv4_address', str(post_key).strip() ):
                 try:
                     acl = KeyValueACL(request)
@@ -601,7 +599,7 @@ class KeyValueHandler(BaseHandler):
                 except:
                     resp = rc.NOT_FOUND
                 return resp
-        
+
         resp = rc.ALL_OK
         resp.write('json = {"id":"1"}')
         return resp

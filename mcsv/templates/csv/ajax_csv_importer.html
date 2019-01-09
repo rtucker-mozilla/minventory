@@ -1,11 +1,12 @@
+{% load getattribute %}
 <style>
     .results code {
         border:5px solid white;
     }
 </style>
-{% if 'error' in result %}
+{% if result.error %}
     <code>
-        {% for error in result['error'] %}
+        {% for error in result.error %}
             {{ error }}
         {% endfor %}
     </code>
@@ -18,29 +19,28 @@
         {% endif %}
     {% for bundle in result %}
         <th>
-            {% if bundle['system'].pk %}
-                <a href='{{ bundle['system'].get_absolute_url() }}'>{{ bundle['system'].hostname }}</a>
+            {% if bundle.system.pk %}
+                <a href='{{ bundle.system.get_absolute_url }}'>{{ bundle.system.hostname }}</a>
             {% else %}
-                {{bundle['system'].hostname}} ( Not created yet )
+                {{bundle.system.hostname}} ( Not created yet )
             {% endif %}
         </th>
         <th></th>
         {% for attr in attrs %}
-            {% if getattr(bundle['system'], attr) %}
+            {% if bundle.system|getattribute:attr %}
                 <tr>
                     <td>{{ attr }}</td>
-                    {% if bundle['orig_system'] and
-                        not getattr(bundle['orig_system'], attr) == getattr(bundle['system'], attr) %}
+                    {% if bundle.orig_system and not bundle.orig_system|getattribute:attr == bundle.system|getattribute:attr %}
                         <td class='new'>
-                            {{ getattr(bundle['orig_system'], attr) }} <b>&rarr;</b> {{ getattr(bundle['system'], attr) }}
+                            {{ bundle.orig_system|getattribute:attr }} <b>&rarr;</b> {{ bundle.system|getattribute:attr }}
                         </td>
-                    {% elif not bundle['orig_system'] %}
+                    {% elif not bundle.orig_system %}
                         <td class='new'>
-                            {{ getattr(bundle['system'], attr) }}
+                            {{ bundle.system|getattribute:attr }}
                         </td>
                     {% else %}
                         <td>
-                            {{ getattr(bundle['system'], attr) }}
+                            {{ bundle.system|getattribute:attr }}
                         </td>
                     {% endif %}
                 </tr>
@@ -49,12 +49,12 @@
         <tr>
             <td><b>Added Key Value Pairs</b></td><td></td>
         </tr>
-        {% if not bundle['kvs'] %}
+        {% if not bundle.kvs %}
             <tr>
                 <td><i>No KV pairs</i></td></td><td></td>
             </tr>
         {% endif %}
-        {% for kv, orig_kv in bundle['kvs'] %}
+        {% for kv, orig_kv in bundle.kvs %}
             <tr>
                 {% if orig_kv and orig_kv.value != kv.value %}
                     <td class='new'>{{ kv.key }}</td><td class='new'>{{ orig_kv.value }} <b>&rarr;</b> {{ kv.value }}</td>

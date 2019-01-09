@@ -25,14 +25,10 @@ from jinja2.filters import contextfilter
 import models
 from systems.models import System, SystemStatus
 from middleware.restrict_to_remote import allow_anyone,sysadmin_only
-from Rack import Rack
-from MozInvAuthorization.KeyValueACL import KeyValueACL
 import simplejson as json
 from forms import SystemForm
 
 # Import resources
-from api_v2.dhcp_handler import DHCPHandler
-from api_v2.keyvalue_handler import KeyValueHandler
 
 
 
@@ -83,21 +79,6 @@ def check_dupe_nic_name(requessdft,system_id,adapter_name):
     except:
         pass
     return HttpResponse(found)
-
-@allow_anyone
-def system_rack_elevation(request, rack_id):
-    r = Rack(rack_id)
-    data  = {
-            'rack_ru': r.ru,
-            'ethernet_patch_panels_24': r.ethernet_patch_panel_24,
-            'ethernet_patch_panels_48': r.ethernet_patch_panel_48,
-            'systems': r.systems,
-    }
-    data = json.dumps(data)
-    return render_to_response('systems/rack_elevation.html', {
-        'data':data,
-        },
-        RequestContext(request))
 
 
 @allow_anyone
@@ -255,7 +236,7 @@ def build_json(request, systems, sEcho, total_records, display_count, sort_col, 
 def home(request):
     """Index page"""
     return render_to_response('systems/index.html', {
-            'read_only': getattr(request, 'read_only', False),
+            'read_only': False,
             #'is_build': getattr(request.user.groups.all(), 'build', False),
            })
 
@@ -532,15 +513,7 @@ def system_show(request, id):
         system.notes = system.notes.replace("\n", "<br />")
     show_nics_in_key_value = False
     is_release = False
-    try:
-        request = factory.get(
-            '/api/v2/keyvalue/3/',
-            {'key_type': 'adapters_by_system', 'system': system.hostname}
-        )
-        h = KeyValueHandler()
-        adapters = h.read(request, key_value_id='3')
-    except:
-        adapters = []
+    adapters = []
     if system.allocation is 'release':
         is_release = True
     if (system.serial and
@@ -742,7 +715,7 @@ def new_rack_system_ajax(request, rack_id):
 def racks_by_site(request, site_pk=0):
     ret_list = []
     if int(site_pk) > 0:
-        site= Site.objects.get(id=site_pk)
+        site= models.Site.objects.get(id=site_pk)
         racks = models.SystemRack.objects.select_related('site').filter(site=site).order_by('name')
     else:
         racks = models.SystemRack.objects.select_related('site').order_by('site', 'name')
@@ -763,7 +736,7 @@ def racks(request):
         site_id = request.GET['site']
         has_query = True
         if len(site_id) > 0 and int(site_id) > 0:
-            site = Site.objects.get(id=site_id)
+            site = models.Site.objects.get(id=site_id)
             filter_form.fields['rack'].choices = [('','ALL')] + [
                 (m.id, m.site.full_name + ' ' +  m.name)
                 for m in models.SystemRack.objects.filter(site=site).order_by('name')
@@ -859,7 +832,7 @@ def rack_new(request):
         RequestContext(request))
 
 def ajax_racks_by_site(request, site_pk):
-    site = get_object_or_404(Site, pk=site_pk)
+    site = get_object_or_404(models.Site, pk=site_pk)
     decom = SystemStatus.objects.get(status='decommissioned')
 
     def filter_decom(system_Q):
@@ -876,12 +849,12 @@ def server_model_create(request):
     from forms import ServerModelForm
     initial = {}
     if request.method == 'POST':
-        form = ServerModelForm(request.POST, instance=server_model)
+        form = ServerModelForm(request.POST)
         if form.is_valid():
             form.save()
             return HttpResponseRedirect('/systems/server_models/')
     else:
-        form = ServerModelForm(instance=server_model)
+        form = ServerModelForm()
 
     return render_to_response(
         'generic_form.html',

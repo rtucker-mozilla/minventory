@@ -10,7 +10,7 @@ $(document).ready(function () {
         $('#csv-results').empty();
         $.ajax({
             type: "POST",
-            url: "/en-US/csv/ajax_csv_importer/",
+            url: "/csv/ajax_csv_importer/",
             data: $('#csv-form').serialize(),
             success: function (data) {
                 $('#id_waiting').css('display', 'none');

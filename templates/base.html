@@ -32,11 +32,6 @@
 </head>
 <body data-media-url="{{ MEDIA_URL }}">
 <div class="header-bar">
-    <div id='search-box'>
-        <input placeholder='Search...' autofocus="autofocus"></input>
-        <div id='search-box-result'>
-        </div>
-    </div>
     <div class="header nav-bar">
     <h1><a href="/">Inventory</a></h1>
         <ul>
@@ -44,12 +39,9 @@
                 <a>Systems</a>
                 <ul>
                     <li><a href='{% url 'system-home' %}'>Systems</a></li>
-                    <li><a href="{% url 'system_rack-list' }}">Racks</a></li>
-                    {% if not read_only %}
-                    <li><a href="/systems/oncall/">Oncall</a></li>
+                    <li><a href="{% url 'system_rack-list' %}">Racks</a></li>
                     <li><a href="{% url 'csv-importer' %}">CSV Import</a></li>
                     <li><a href="{% url 'server_model-list' %}">Models</a></li>
-                    {% endif %}
                 </ul>
             </li>
         </ul>

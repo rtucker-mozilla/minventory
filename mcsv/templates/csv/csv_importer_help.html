@@ -246,7 +246,7 @@
         {% for field_name, bundle in generator.meta_bundles %}
             <table class='csv tablesorter'>
                 <caption>{{field_name}}</caption>
-                <tr><td>Allowable headers:</td><td>{{', '.join(bundle['values'])}}</td></tr>
+                <tr><td>Allowable headers:</td><td>{{bundle.values|join:", " }}</td></tr>
             <table>
         {% endfor %}
     </div>
@@ -255,7 +255,7 @@
         {% for field_name, bundle in  generator.system_attr_bundles %}
             <table class='csv tablesorter'>
                 <caption>{{field_name}}</caption>
-                <tr><td>Allowable headers:</td><td>{{', '.join(bundle['values'])}}</td></tr>
+                <tr><td>Allowable headers:</td><td>{{bundle.values|join:", "}}</td></tr>
                 <tr><td>Schema column name:</td><td>{{field_name}}</td></tr>
             <table>
         {% endfor %}
@@ -266,9 +266,9 @@
         {% for field_name, bundle in  generator.system_related_bundles %}
             <table class='csv tablesorter'>
                 <caption>{{field_name}}</caption>
-                <tr><td>Allowable headers:</td><td>{{', '.join(bundle['values'])}}</td></tr>
+                <tr><td>Allowable headers:</td><td>{{bundle.values|join:", " }}</td></tr>
                 <tr><td>Schema column name:</td><td>{{field_name}}</td></tr>
-                <tr><td>Filter names:</td><td>{{', '.join(bundle['filter_fields'])}}</td></tr>
+                <tr><td>Filter names:</td><td>{{bundle.filter_fields|join:", " }}</td></tr>
             <table>
         {% endfor %}
     </div>

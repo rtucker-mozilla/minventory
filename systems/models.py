@@ -4,21 +4,194 @@ from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save
 from django.db.models.query import QuerySet
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 
 from settings import BUG_URL
-from mozdns.validation import validate_name
 
-from core.validation import validate_mac
-from core.keyvalue.mixins import KVUrlMixin
-from core.keyvalue.models import KeyValue as BaseKeyValue
-from core.mixins import CoreDisplayMixin
-from core.utils import create_key_index
-from core.tests.utils import Refresher
 
 import datetime
 import re
 import socket
 import math
+
+from django.db import models
+from django.db.models import Q
+from django.core.exceptions import ValidationError
+
+class Refresher(object):
+    # Mixin class. Make sure the mixer class is django ORM based class
+    def refresh(self):
+        return self.__class__.objects.get(pk=self.pk)
+
+def create_key_index(kvs):
+    index = {}
+    for kv in kvs:
+        index[kv['key']] = kv
+    return index
+
+
+
+class BaseKeyValue(models.Model):
+    """How this KeyValue class works:
+        The KeyValue objects have functions that correspond to different
+        keys. When a key is saved an attempt is made to find a validation
+        function for that key.
+
+        >>> attr = hasattr(kv, key)
+
+        If `attr` is not None, then it is checked for callability.
+
+        >>> attr = getattr(kv, key)
+        >>> callable(attr)
+
+        If it is callable, it is called with the value of the key.
+
+        >>> kv.attr(kv.value)
+
+        The validator is then free to raise exceptions if the value being
+        inserted is invalid.
+
+        When a validator for a key is not found, the KeyValue class can either
+        riase an exception or not. This behavior is controled by the
+        'force_validation' attribute: if 'force_validation' is 'True' and
+        KeyValue requires a validation function. The 'require_validation' param
+        to the clean method can be used to override the behavior of
+        'force_validation'.
+
+        Subclass this class and include a Foreign Key when needed.
+
+        Validation functions can start with '_aa_'. 'aa' stands for auxililary
+        attribute.
+    """
+    id = models.AutoField(primary_key=True)
+    key = models.CharField(max_length=255)
+    value = models.CharField(max_length=255)
+    force_validation = False
+
+    class Meta:
+        abstract = True
+
+    def __repr__(self):
+        return "<{0}>".format(self)
+
+    def __str__(self):
+        return "Key: {0} Value {1}".format(self.key, self.value)
+
+    @property
+    def uri(self):
+        return '/en-US/core/keyvalue/api/{0}/{1}/update/'.format(
+            self.__class__.__name__.lower(), self.pk
+        )
+
+    def get_absolute_url(self):
+        return '/en-US/core/keyvalue/{0}/{1}/'.format(
+            self.__class__.__name__.lower(), self.obj.pk
+        )
+
+    def get_bundle(self):
+        return {
+            'key': self.key, 'value': self.value, 'uri': self.uri,
+            'kv_pk': self.pk, 'obj_pk': self.obj.pk
+        }
+
+    def clean(self, require_validation=True, check_unique=True):
+        key_attr = self.key.replace('-', '_')
+        # aa stands for auxilarary attribute.
+        if (not hasattr(self, key_attr) and
+                not hasattr(self, "_aa_" + key_attr)):
+            # ??? Do we want this?
+            if self.force_validation and require_validation:
+                raise ValidationError("No validator for key %s" % self.key)
+            else:
+                if check_unique:  # Since we aren't call this later
+                    self.validate_unique()
+                return
+        if hasattr(self, key_attr):
+            validate = getattr(self, key_attr)
+        else:
+            validate = getattr(self, "_aa_" + key_attr)
+
+        if not callable(validate):
+            raise ValidationError("No validator for key %s not callable" %
+                                  key_attr)
+        try:
+            validate()
+        except TypeError, e:
+            # We want to catch when the validator didn't accept the correct
+            # number of arguements.
+            raise ValidationError("%s" % str(e))
+        if check_unique:
+            self.validate_unique()
+
+    def validate_unique(self):
+        if (self.__class__.objects.filter(
+                key=self.key, value=self.value, obj=self.obj).
+                filter(~Q(id=self.pk)).exists()):
+            raise ValidationError("A key with this value already exists.")
+
+def validate_mac(mac):
+    """
+    Validates a mac address. If the mac is in the form XX-XX-XX-XX-XX-XX this
+    function will replace all '-' with ':'.
+
+    :param mac: The mac address
+    :type mac: str
+    :returns: The valid mac address.
+    :raises: ValidationError
+    """
+    if not is_mac.match(mac):
+        raise ValidationError(
+            "Mac Address {0} is not in valid format".format(mac)
+        )
+    return mac
+
+def validate_name(fqdn):
+    """Run test on a name to make sure that the new name is constructed
+    with valid syntax.
+
+        :param fqdn: The fqdn to be tested.
+        :type fqdn: str
+
+
+        "DNS domain names consist of "labels" separated by single dots."
+        -- `RFC <http://tools.ietf.org/html/rfc1912>`__
+
+
+        .. note::
+            DNS name hostname grammar::
+
+                <domain> ::= <subdomain> | " "
+
+                <subdomain> ::= <label> | <subdomain> "." <label>
+
+                <label> ::= <letter> [ [ <ldh-str> ] <let-dig> ]
+
+                <ldh-str> ::= <let-dig-hyp> | <let-dig-hyp> <ldh-str>
+
+                <let-dig-hyp> ::= <let-dig> | "-"
+
+                <let-dig> ::= <letter> | <digit>
+
+                <letter> ::= any one of the 52 alphabetic characters A
+                through Z in upper case and a through z in lower case
+
+                <digit> ::= any one of the ten digits 0 through 9
+
+            --`RFC 1034 <http://www.ietf.org/rfc/rfc1034.txt>`__
+    """
+    # TODO, make sure the grammar is followed.
+    _name_type_check(fqdn)
+
+    # Star records are allowed. Remove them during validation.
+    if fqdn[0] == '*':
+        fqdn = fqdn[1:]
+        fqdn = fqdn.strip('.')
+
+    for label in fqdn.split('.'):
+        if not label:
+            raise ValidationError("Invalid name {0}. Empty label."
+                                  .format(fqdn))
+        validate_label(label)
 
 
 class QuerySetManager(models.Manager):
@@ -28,6 +201,11 @@ class QuerySetManager(models.Manager):
     # def __getattr__(self, attr, *args):
     #     return getattr(self.get_query_set(), attr, *args)
 
+def to_a(text, obj, use_absolute_url=True):
+    if use_absolute_url:
+        return "<a href='{0}'>{1}</a>".format(obj.get_absolute_url(), text)
+    else:
+        return "<a href='{0}'>{1}</a>".format(obj, text)
 
 class DirtyFieldsMixin(object):
     def __init__(self, *args, **kwargs):
@@ -73,7 +251,121 @@ class SystemWithRelatedManager(models.Manager):
             'system_rack',
         )
 
+def validate_site_name(name):
+    if not name:
+        raise ValidationError("A site name must be non empty.")
+    if name.find(' ') > 0:
+        raise ValidationError("A site name must not contain spaces.")
+    if name.find('.') > 0:
+        raise ValidationError("A site name must not contain a period.")
 
+class Site(models.Model):
+    systems = None
+    # This is memoized later. Remove it when SystemRack is moved into it's own
+    # file as this circular import is not required.
+
+    id = models.AutoField(primary_key=True)
+    full_name = models.CharField(
+        max_length=255, null=True, blank=True
+    )
+    name = models.CharField(
+        max_length=255, validators=[validate_site_name], blank=True
+    )
+    parent = models.ForeignKey("self", null=True, blank=True)
+
+    search_fields = ('full_name',)
+
+    template = (
+        "{full_name:$lhs_just} {rdtype:$rdtype_just} {full_name:$rhs_just}"
+    )
+
+    class Meta:
+        db_table = 'site'
+        unique_together = ('full_name',)
+
+    def __str__(self):
+        return "{0}".format(self.full_name)
+
+    def __repr__(self):
+        return "<Site {0}>".format(self)
+
+    @classmethod
+    def get_api_fields(cls):
+        return ['name', 'parent', 'full_name']
+
+    @property
+    def rdtype(self):
+        return 'SITE'
+
+    def save(self, *args, **kwargs):
+        self.name = self.full_name.split('.')[0]
+        self.full_clean()
+        super(Site, self).save(*args, **kwargs)
+
+    def clean(self):
+        map(validate_site_name, self.full_name.split('.'))
+        self.name, parent_name = (
+            self.full_name.split('.')[0], self.full_name.split('.')[1:]
+        )
+        validate_site_name(self.name)
+        if self.pk:
+            db_self = self.__class__.objects.get(pk=self.pk)
+            if self.site_set.exists() and self.name != db_self.name:
+                raise ValidationError(
+                    "This site has child sites. You cannot change it's name "
+                    "without affecting all child sites."
+                )
+        if not self.full_name.find('.') == -1:
+            self.parent, _ = self.__class__.objects.get_or_create(
+                full_name='.'.join(parent_name)
+            )
+        else:
+            self.parent = None
+
+    def delete(self, *args, **kwargs):
+        if self.site_set.all().exists():
+            raise ValidationError(
+                "This site has child sites. You cannot delete it."
+            )
+        super(Site, self).delete(*args, **kwargs)
+
+    def details(self):
+        details = [
+            ('Name', self.full_name),
+        ]
+        if self.parent:
+            details.append(
+                ('Parent Site', to_a(self.parent.full_name, self.parent))
+            )
+        else:
+            details.append(
+                ('All sites', to_a('Global Site View', reverse('site-list'),
+                                   use_absolute_url=False))
+            )
+        return details
+
+    def get_site_path(self):
+        target = self
+        npath = [self.name]
+        while True:
+            if target.parent is None:
+                break
+            else:
+                npath.append(target.parent.name)
+                target = target.parent
+        return '.'.join(npath)
+
+    def get_systems(self):
+        """Get all systems associated to racks in this site"""
+        if not self.systems:
+            from systems.models import System
+            self.systems = System.objects.all()
+        return self.systems.filter(system_rack__in=self.systemrack_set.all())
+
+    def get_allocated_networks(self):
+        """Return a list of all top level networks assocaited with this site"""
+        from core.network.utils import calc_top_level_networks
+        return calc_top_level_networks(self)
 class Allocation(models.Model):
     name = models.CharField(max_length=255, blank=False)
     search_fields = ('name',)
@@ -217,7 +509,7 @@ class ApiManager(models.Manager):
         return results
 
 
-class KeyValue(BaseKeyValue, KVUrlMixin):
+class KeyValue(BaseKeyValue):
     obj = models.ForeignKey('System', null=True)
     objects = models.Manager()
     expanded_objects = ApiManager()
@@ -315,6 +607,7 @@ class ServerModel(models.Model):
 class SystemRack(models.Model):
     name = models.CharField(max_length=255)
     location = models.ForeignKey('Location', null=True)
+    site = models.ForeignKey('Site', null=True)
 
     search_fields = ('name', 'site__name')
 
@@ -380,7 +673,7 @@ class SystemStatus(models.Model):
         return ('status',)
 
 
-class System(Refresher, DirtyFieldsMixin, CoreDisplayMixin, models.Model):
+class System(Refresher, DirtyFieldsMixin, models.Model):
 
     YES_NO_CHOICES = (
         (0, 'No'),
@@ -400,6 +693,8 @@ class System(Refresher, DirtyFieldsMixin, CoreDisplayMixin, models.Model):
         unique=True, max_length=255, validators=[validate_name]
     )
     serial = models.CharField(max_length=255, blank=True, null=True)
+    pdu1 = models.CharField(max_length=255, blank=True, null=True)
+    pdu2 = models.CharField(max_length=255, blank=True, null=True)
     created_on = models.DateTimeField(null=True, blank=True)
     updated_on = models.DateTimeField(null=True, blank=True)
     oob_ip = models.CharField(max_length=30, blank=True, null=True)

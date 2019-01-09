@@ -14,7 +14,7 @@
         {% for o in object_list %}
         <tr>
             <td>{{ o.vendor }}</td>
-            <td>{% if o.id %}<a href="{% url "user-system-list-by-model" o.id %}">{{ o.model }}</a>{% else %} {{ o.model }}{% endif %}</td>
+	    <td>{{ o.model }}</td>
             <td>{{ o.description }}</td>
             <td><a href="{% url "server_model-show" o.id %}">Show</a></td>
             <td><a href="{% url "server_model-edit" o.id %}">Edit</a></td>

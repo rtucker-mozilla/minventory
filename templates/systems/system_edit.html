@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% load static %}
 {% block subtitle %} - {{ system.hostname }} - edit{% endblock %}
 {% block head %}
-<script type='text/javascript' src='/static/js/jquery.validate.min.js'></script>
+<script type='text/javascript' src="{% static "js/jquery.validate.min.js" %}"></SCRipt>
 <!-- standalone page styling (can be removed) -->
-<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/standalone.css"/>	
+<link rel="stylesheet" type="text/css" href="{% static "css/standalone.css" %}"/>	
 
 
 	
@@ -147,9 +148,9 @@ ul.css-tabs a.current {
 
 
 </style>
-<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/tabs.css" />
-<script src="{{ MEDIA_URL }}javascripts/jquery.validate.1.11.1.js"></script>
-<script src="{{ MEDIA_URL }}javascripts/system_form_snippet.js"></script>
+<link rel="stylesheet" type="text/css" href="{% static "css/tabs.css" %}" />
+<script src="{% static "javascripts/jquery.validate.1.11.1.js" %}"></script>
+<script src="{% static "javascripts/system_form_snippet.js" %}"></script>
 <script type="text/javascript">
     $(document).ready(function(){
         var system_id = getURISegment(5);

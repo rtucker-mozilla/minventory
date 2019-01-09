@@ -36,7 +36,6 @@ urlpatterns = [
     url(r'^racks/new/$', views.rack_new, name="system_rack-new"),
     url(r'^racks/edit/(?P<object_id>\d+)/$', views.rack_edit, name="system_rack-edit"),
     url(r'^racks/system/new/(?P<rack_id>\d+)/$', views.new_rack_system_ajax, name='racks-system-new'),
-    url(r'^racks/elevation/(?P<rack_id>.*)[/]$', views.system_rack_elevation, name='system-rack-elevation'),
     url(r'^racks/bysite/(?P<site_pk>\d+)/$', views.racks_by_site, name='system-racks-by-site'),
     url(r'^racks/ajax_racks_by_site/(?P<site_pk>\d+)/$', views.ajax_racks_by_site, name='racks-by-site'),
     url(r'^server_models/new/$', views.server_model_create, name="server_model-new"),

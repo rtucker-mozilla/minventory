@@ -1,8 +1,6 @@
 from piston.handler import BaseHandler, rc
 from systems.models import System, SystemRack,SystemStatus,NetworkAdapter,KeyValue
 from truth.models import Truth, KeyValue as TruthKeyValue
-from dhcp.DHCP import DHCP as DHCPInterface
-from dhcp.models import DHCP
 from MacroExpansion import MacroExpansion
 from KeyValueTree import KeyValueTree
 import re
@@ -74,7 +72,7 @@ class KeyValueHandler(BaseHandler):
         input_regex_array.append(re.compile('^dhcp\.scope\.start$'))
         output_regex_array.append(re.compile(ipv4_regex))
         error_message_array.append('Requires IP Address')
-        
+
         input_regex_array.append(re.compile('^dhcp\.scope\.end$'))
         output_regex_array.append(re.compile(ipv4_regex))
         error_message_array.append('Requires IP Address')
@@ -106,7 +104,7 @@ class KeyValueHandler(BaseHandler):
         input_regex_array.append(re.compile('^dhcp\.pool\.allow_booting\.\d+$'))
         output_regex_array.append(re.compile(true_false_regex))
         error_message_array.append('Requires True|False')
-        
+
         input_regex_array.append(re.compile('^dhcp\.pool\.allow_bootp\.\d+$'))
         output_regex_array.append(re.compile(true_false_regex))
         error_message_array.append('Requires True|False')
@@ -146,7 +144,7 @@ class KeyValueHandler(BaseHandler):
         ###TODO This whole method is not functioning correctly. Just for version 2. Not getting the system_id or truth_id from the poster firefox plugin
         if 'system_id' in request.POST:
             n = None
-            key_validated, validation_error_string = self.validate(request.POST['key'], request.POST['value']) 
+            key_validated, validation_error_string = self.validate(request.POST['key'], request.POST['value'])
             if key_validated is False:
                 resp = rc.FORBIDDEN
                 resp.write('Validation Failed for %s %s' % (request.POST['key'], validation_error_string) )
@@ -503,7 +501,7 @@ class KeyValueHandler(BaseHandler):
                 except:
                     resp = rc.NOT_FOUND
                 return resp
-        
+
         resp = rc.ALL_OK
         resp.write('json = {"id":"1"}')
         return resp

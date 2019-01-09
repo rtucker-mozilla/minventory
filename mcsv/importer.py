@@ -74,6 +74,7 @@ class Generator(object):
         action_list = []
         fail = False
         for (header, raw_header) in headers:
+            header = header.replace(" ","_")
             found_handler = False
 
             for (phase, bundle_list) in enumerate(bundle_lists):

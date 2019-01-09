@@ -2,15 +2,45 @@
 {% block subtitle %} - racks{% endblock %}
 {% block content %}
 <h2>Listing Racks</h2>
-{% if not read_only %}<a href="{{ "system_rack-new"|url() }}">Create New</a>{% endif %}
+{% if not read_only %}<a href="{% url "system_rack-new" %}">Create New</a>{% endif %}
 <form action="" method="get">
-    {{ filter_form.as_p() }}
+    {{ filter_form.as_p }}
     <input type="submit" value="Filter" />
 </form>
 
-{% import 'systems/rack_macros.html' as drawer -%}
 {% for rack, systems in racks %}
-    {{ drawer.display_rack(rack, systems) }}
+    <table class="racktable rack" id="rack-{{ rack.id }}" style="width: 72em; margin:auto;">
+        <tr>
+            <th colspan="6">
+                {% if rack.site %}
+                    Site: <a href="{{ rack.site.get_absolute_url }}">{{ rack.site }}</a> -
+                {% endif %}
+                Rack: <a href="/en-US/systems/racks/?rack={{ rack.pk }}">{{ rack }}</a>
+                {% if not read_only %}
+                    - <a href="{% url "system_rack-edit" rack.pk %}">Edit</a>
+                    - <a href="{% url "rack-delete" rack.pk %}">Delete</a>
+                {% endif %}
+            </th>
+        </tr>
+        <tr style="font-weight:bold;">
+            <td style="width:3em;">Order</td>
+            <td style="width:15em;">Host</td>
+            <td style="width:10em">Asset</td>
+            <td style="width:20em;">Model</td>
+            <td style="width:7em;">Allocated To</td>
+            {% if not read_only %}
+                <td style="width: 7em;">ILO</td>
+            {% endif %}
+        </tr>
+
+        {% if systems %}
+            {% for system in systems %}
+                {% include "systems/rack_row_partial.html" %}
+            {% endfor %}
+        {% endif %}
+        {% if not read_only %}
+        <tr><td style="text-align: center" colspan="6"><a class="new-system" href="">Add New System To Rack</a></td></tr>
+        {% endif %}
     <br />
 {% endfor %}
 <script type="text/javascript" src="/static/javascripts/application.js"></script>

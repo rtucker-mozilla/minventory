@@ -33,39 +33,22 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.admin',
     'django.contrib.sites',
-
-#    'core.site',
+    'django.contrib.staticfiles',
     'systems',
-    'truth',
-    'dhcp',
     'mcsv',
-#    'mozdns.soa',
-#    'mozdns.domain',
-#    'mozdns.view',
-#    'mozdns.cname',
-#    'mozdns.mx',
-#    'mozdns.sshfp',
-#    'mozdns.txt',
-#    'mozdns.srv',
-#    'mozdns.address_record',
-#    'core.task',
-    'api_v2',
-#    'oncall',
-#    'user_systems',
-#    'core',
-#    'reports',
+    'invapi',
+    'rest_framework',
+    'rest_framework.authtoken',
+#    'truth',
+#    'dhcp',
+#    'api_v2',
 ]
 
 
 
 # Because Jinja2 is the default template loader, add any non-Jinja templated
 # apps here:
-JINGO_EXCLUDE_APPS = [
-    #'debug_toolbar',
-    'build',
-    'admin',
-    'user_systems',
-]
+
 DJANGO_TEMPLATE_APPS = [
     'admin',
     'build',
