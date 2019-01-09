@@ -27,6 +27,7 @@ urlpatterns = [
     # Uncomment the next line to enable the admin:
 #    url(r'^admin/', include(admin.site.urls)),
     url(r'^api/', include(router.urls)),
+    url(r'^tokenapi/', include(router.urls)),
     url(r'^$', system_views.home, name='system-home'),
     url(r'^en-US/$', system_views.home, name='system-home'),
     url(r'^a(\d+)/$', system_views.system_show_by_asset_tag),

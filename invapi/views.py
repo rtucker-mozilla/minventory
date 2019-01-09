@@ -1,6 +1,7 @@
 from systems import models
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import serializers
 
@@ -23,4 +24,7 @@ class SystemViewSet(viewsets.ModelViewSet):
     queryset = models.System.objects.all().order_by('-id')
     serializer_class = SystemSerializer
     permission_classes = (IsAuthenticated,)
+    filter_backends = (DjangoFilterBackend,)
+    #filter_fields = '__all__'
+    filter_fields = ('id', 'hostname', 'system_status__status')
 

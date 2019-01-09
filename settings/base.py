@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'invapi',
     'rest_framework',
     'rest_framework.authtoken',
+    'django_filters',
 #    'truth',
 #    'dhcp',
 #    'api_v2',
