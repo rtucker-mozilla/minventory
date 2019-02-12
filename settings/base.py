@@ -125,7 +125,7 @@ DEBUG_TOOLBAR_CONFIG = {
 #############################################################
 #                       MOZ DNS                             #
 #############################################################
-from settings.dnsbuilds import *
+#from settings.dnsbuilds import *
 MOZDNS_BASE_URL = "/mozdns"
 CORE_BASE_URL = "/core"
 ROOT_URLCONF = 'urls'
