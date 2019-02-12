@@ -300,7 +300,6 @@ class SystemWithRelatedManager(models.Manager):
         return objects.select_related(
             'operating_system',
             'server_model',
-            'allocation',
             'system_rack',
         )
 
@@ -419,36 +418,6 @@ class Site(models.Model):
         """Return a list of all top level networks assocaited with this site"""
         from core.network.utils import calc_top_level_networks
         return calc_top_level_networks(self)
-class Allocation(models.Model):
-    name = models.CharField(max_length=255, blank=False)
-    search_fields = ('name',)
-
-    class Meta:
-        db_table = u'allocations'
-        ordering = ['name']
-
-    def __unicode__(self):
-        return self.name
-
-    def __str__(self):
-        return self.name
-
-    @classmethod
-    def get_api_fields(cls):
-        return ('name',)
-
-    def clean(self):
-        # Normaliz our name
-        label_lists = self.name.split(':')
-        label_lists = [ll.split() for ll in label_lists]
-        label_lists = [map(lambda i: i.title(), ll) for ll in label_lists]
-        label_lists = [' '.join(ll) for ll in label_lists]
-        self.name = ' : '.join(label_lists)
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super(Allocation, self).save(*args, **kwargs)
-
 
 class ScheduledTask(models.Model):
     task = models.CharField(max_length=255, blank=False, unique=True)
@@ -667,6 +636,7 @@ class SystemRack(models.Model):
     class Meta:
         db_table = u'system_racks'
         ordering = ['name']
+        unique_together = ('name', 'site',)
 
     def __str__(self):
         return "%s" % (
@@ -736,7 +706,6 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
     # Related Objects
     operating_system = models.ForeignKey(
         'OperatingSystem', blank=True, null=True)
-    allocation = models.ForeignKey('Allocation', blank=True, null=True)
     system_type = models.ForeignKey('SystemType', blank=True, null=True)
     system_status = models.ForeignKey('SystemStatus', blank=True, null=True)
     server_model = models.ForeignKey('ServerModel', blank=True, null=True)
@@ -799,7 +768,7 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
     @classmethod
     def get_api_fields(cls):
         return [
-            'operating_system', 'server_model', 'allocation', 'system_rack',
+            'operating_system', 'server_model', 'system_rack',
             'system_type', 'system_status', 'hostname', 'serial', 'oob_ip',
             'asset_tag', 'notes', 'rack_order', 'switch_ports',
             'patch_panel_port', 'oob_switch_port', 'purchase_date',
@@ -979,15 +948,15 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
 
         if not self.is_vm():
             self.validate_warranty()
-            self.validate_serial()
+            #self.validate_serial()
 
         if not self.system_status:
             self.system_status, _ = SystemStatus.objects.get_or_create(
                 status='building'
             )
-        self.validate_allocation()
 
     def is_vm(self):
+        return False
         if not self.system_type:
             return False
 
@@ -1000,13 +969,6 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
         if not self.system_type:
             raise ValidationError(
                 "Server Type is a required field"
-            )
-
-    def validate_allocation(self):
-        if (not self.allocation and self.system_status and
-                self.system_status.status == 'decommissioned'):
-            raise ValidationError(
-                "Systems that are not decommissioned require an allocation"
             )
 
     def validate_serial(self):

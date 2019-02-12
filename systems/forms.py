@@ -31,11 +31,6 @@ class ServerModelForm(forms.ModelForm):
         model = models.ServerModel
         fields = '__all__'
 
-class AllocationForm(forms.ModelForm):
-    class Meta:
-        model = models.Allocation
-        fields = '__all__'
-
 class RackFilterForm(forms.Form):
 
     site = forms.ChoiceField(
@@ -57,11 +52,6 @@ class RackFilterForm(forms.Form):
         ]
     )
 
-    allocation = forms.ChoiceField(
-        required=False,
-        choices=[('', 'ALL')] + [(m.id, m)
-                    for m in models.Allocation.objects.all()])
-
     show_decommissioned = forms.BooleanField(required=False)
 
     def __init__(self, *args, **kwargs):
@@ -72,7 +62,6 @@ class RackFilterForm(forms.Form):
             (m.id, '{0} - {1}'.format(m.site.full_name, m.name) if m.site else '' + ' ' +  m.name)
             for m in models.SystemRack.objects.all().order_by('site', 'name')
         ]
-        self.fields['allocation'].choices = [('', 'ALL')] + [(m.id, m) for m in models.Allocation.objects.all()]
         self.fields['show_decommissioned'].initial = False
 
 def return_data_if_true(f):
@@ -133,7 +122,6 @@ class SystemForm(forms.ModelForm):
                   'change_password',
                   'operating_system',
                   'server_model',
-                  'allocation',
                   'asset_tag',
                   'purchase_date',
                   'purchase_price',
@@ -189,18 +177,6 @@ class SystemForm(forms.ModelForm):
         return None
 
     @return_data_if_true
-    def clean_allocation(self):
-        name = self.data.get('js_allocation_name')
-
-        if name is not None:
-            allocation, c = models.Allocation.objects.get_or_create(
-                name=name,
-            )
-            return allocation
-
-        return None
-
-    @return_data_if_true
     def clean_system_status(self):
         name_status = self.data.get('js_status_name')
         color_status = self.data.get('js_status_color')
@@ -227,7 +203,6 @@ class RackSystemForm(forms.ModelForm):
                   'hostname',
                   'asset_tag',
                   'server_model',
-                  'allocation',
                   'oob_ip',)
 
 

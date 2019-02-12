@@ -12,8 +12,24 @@ from middleware.restrict_to_remote import allow_anyone
 import systems.views as system_views
 import invapi.views as apiviews
 
+system_detail = apiviews.SystemViewSet.as_view({
+        'get': 'retrieve',
+        'put': 'update',
+        'patch': 'partial_update',
+        'delete': 'destroy'
+})
+
+system_root = apiviews.SystemViewSet.as_view({
+        'get': 'list',
+        'post': 'create',
+})
+
 router = routers.DefaultRouter()
-router.register(r'systems', apiviews.SystemViewSet)
+router.register(r'systemstatus', apiviews.SystemStatusViewSet)
+router.register(r'servermodel', apiviews.ServerModelViewSet)
+router.register(r'operatingsystem', apiviews.OperatingSystemViewSet)
+router.register(r'systemtype', apiviews.SystemTypeViewSet)
+router.register(r'systemrack', apiviews.SystemRackViewSet)
 
 
 urlpatterns = [
@@ -26,7 +42,9 @@ urlpatterns = [
 
     # Uncomment the next line to enable the admin:
 #    url(r'^admin/', include(admin.site.urls)),
-    url(r'^api/', include(router.urls)),
+#    url(r'^api/', include(router.urls)),
+    url(r'^tokenapi/systems/$', system_root, name="tokenapi-system-root"),
+    url(r'^tokenapi/systems/(?P<pk>.+)/$', system_detail, name="tokenapi-system-detail"),
     url(r'^tokenapi/', include(router.urls)),
     url(r'^$', system_views.home, name='system-home'),
     url(r'^en-US/$', system_views.home, name='system-home'),

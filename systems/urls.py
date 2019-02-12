@@ -29,7 +29,6 @@ urlpatterns = [
 
 
     url(r'^csv/$', views.system_csv, name="system-csv"),
-    url(r'^releng_csv/$', views.system_releng_csv, name="system-csv"),
     url(r'^csv/import/$', views.csv_import, name='system-csv-import'),
     url(r'^racks/$', views.racks, name='system_rack-list'),
     url(r'^racks/delete/(?P<object_id>\d+)/$', views.rack_delete, name='rack-delete'),
@@ -47,9 +46,4 @@ urlpatterns = [
     url(r'^operating_system/list_ajax/$', views.operating_system_list_ajax, name="server_model_list_ajax"),
     url(r'^server_models/show/(?P<object_id>\d+)/$', views.server_model_show, name="server_model-show"),
     #url(r'^server_models/delete/(?P<object_id>\d+)/$', delete_object, gen_del_dict(ServerModel, 'server_model-list), name='server_model-delete),
-
-    url(r'^allocations/new/$', views.allocation_new, name="allocation-new"),
-    url(r'^allocations/edit/(?P<object_id>\d+)/$', views.allocation_edit,  name="allocation-edit"),
-    url(r'^allocations/$', views.allocation_list, name="allocation-list"),
-    url(r'^allocations/show/(?P<object_id>\d+)/$', views.allocation_show, name="allocation-show"),
 ]

@@ -514,8 +514,6 @@ def system_show(request, id):
     show_nics_in_key_value = False
     is_release = False
     adapters = []
-    if system.allocation is 'release':
-        is_release = True
     if (system.serial and
             system.server_model and
             system.server_model.part_number and
@@ -551,8 +549,6 @@ def system_show(request, id):
 def system_show_by_asset_tag(request, id):
     system = get_object_or_404(models.System, asset_tag=id)
     is_release = True
-    if system.allocation is 'release':
-        is_release = True
     if (system.serial and
             system.server_model and
             system.server_model.part_number and
@@ -647,23 +643,10 @@ def system_csv(request):
     writer.writerow(['Host Name', 'Serial', 'Asset Tag', 'Model', 'Allocation', 'Rack', 'Switch Ports', 'OOB IP'])
     for s in systems:
         try:
-            writer.writerow([s.hostname, s.serial, s.asset_tag, s.server_model, s.allocation, s.system_rack, s.switch_ports, s.oob_ip])
+            writer.writerow([s.hostname, s.serial, s.asset_tag, s.server_model, s.system_rack, s.switch_ports, s.oob_ip])
         except:
             writer.writerow([s.hostname, s.serial, s.asset_tag, s.server_model, '', s.system_rack, s.switch_ports, s.oob_ip])
 
-
-    return response
-
-def system_releng_csv(request):
-    systems = models.System.objects.filter(allocation=2).order_by('hostname')
-
-    response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=systems.csv'
-
-    writer = csv.writer(response)
-    writer.writerow(['id','hostname', 'switch_ports', 'oob_ip', 'system_rack', 'asset_tag', 'operating_system', 'rack_order'])
-    for s in systems:
-        writer.writerow([s.id, s.hostname, s.switch_ports, s.oob_ip, s.system_rack, s.asset_tag, s.operating_system, s.rack_order])
 
     return response
 
@@ -751,9 +734,6 @@ def racks(request):
         if filter_form.cleaned_data['site'] and int(filter_form.cleaned_data['site']) > 0:
             racks = racks.filter(site=filter_form.cleaned_data['site'])
             has_query = True
-        if filter_form.cleaned_data['allocation']:
-            system_query = system_query & Q(allocation=filter_form.cleaned_data['allocation'])
-            has_query = True
         filter_status = filter_form.cleaned_data['status']
         if filter_status:
             system_query &= Q(system_status=filter_form.cleaned_data['status'])
@@ -768,7 +748,6 @@ def racks(request):
     else:
         racks = [(k, list(k.system_set.select_related(
             'server_model',
-            'allocation',
             'system_status',
         ).filter(system_query).order_by('rack_order'))) for k in racks]
 
@@ -943,66 +922,6 @@ def server_model_list(request):
         RequestContext(request))
 
 
-def allocation_show(request, object_id):
-    object = get_object_or_404(models.Allocation, pk=object_id)
-
-    return render_to_response(
-        'systems/allocation_detail.html',
-        {
-            'object': object,
-        },
-        RequestContext(request))
-
-
-def allocation_edit(request, object_id):
-    allocation = get_object_or_404(models.Allocation, pk=object_id)
-    from forms import AllocationForm
-    initial = {}
-    if request.method == 'POST':
-        form = AllocationForm(request.POST, instance=allocation)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect('/systems/allocations/')
-    else:
-        form = AllocationForm(instance=allocation)
-
-    return render_to_response(
-        'generic_form.html',
-        {
-            'form': form,
-        },
-        RequestContext(request))
-
-
-def allocation_list(request):
-    object_list = models.Allocation.objects.all()
-    return render_to_response(
-        'systems/allocation_list.html',
-        {
-            'object_list': object_list,
-        },
-        RequestContext(request))
-
-
-def allocation_new(request):
-    from forms import AllocationForm
-    initial = {}
-    if request.method == 'POST':
-        form = AllocationForm(request.POST, initial=initial)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect('/systems/allocations/')
-    else:
-        form = AllocationForm(initial=initial)
-
-    return render_to_response(
-        'generic_form.html',
-        {
-            'form': form,
-        },
-        RequestContext(request))
-
-
 def csv_import(request):
     from forms import CSVImportForm
 
@@ -1011,12 +930,6 @@ def csv_import(request):
 
     def uppercase_getter(field):
         return field.upper()
-
-    def allocation_getter(field):
-        try:
-            return models.Allocation.objects.get(name=field)
-        except models.Allocation.DoesNotExist:
-            return None
 
     def system_status_getter(field):
         try:
@@ -1043,7 +956,6 @@ def csv_import(request):
         'notes': generic_getter,
         'oob_ip': generic_getter,
         'system_status': system_status_getter,
-        'allocation': allocation_getter,
         'system_rack': rack_getter,
         'rack_order': generic_getter,
         'server_model': server_model_getter,
