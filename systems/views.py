@@ -151,7 +151,7 @@ def list_all_systems_ajax(request):
         try:
             systems = models.System.objects.filter(
                 pk__in=models.System.with_related.filter(search_q).values_list('id', flat=True).distinct()
-            )[iDisplayStart:end_display]
+            )[int(iDisplayStart):int(end_display)]
             the_data = build_json(request, systems, sEcho, total_count, iDisplayLength, sort_col, sort_dir)
         except:
             the_data = '{"sEcho": %s, "iTotalRecords":0, "iTotalDisplayRecords":0, "aaData":[]}' % (sEcho)
