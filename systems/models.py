@@ -677,6 +677,9 @@ class SystemType(models.Model):
     class Meta:
         db_table = u'system_types'
 
+    def __str__(self):
+        return self.type_name
+
     def __unicode__(self):
         return self.type_name
 
