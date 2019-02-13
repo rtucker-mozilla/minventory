@@ -600,6 +600,10 @@ class OperatingSystem(models.Model):
         db_table = u'operating_systems'
         ordering = ['name', 'version']
 
+
+    def __str__(self):
+        return "%s - %s" % (self.name, self.version)
+
     def __unicode__(self):
         return "%s - %s" % (self.name, self.version)
 
