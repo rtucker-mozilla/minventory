@@ -618,6 +618,8 @@ class ServerModel(models.Model):
         db_table = u'server_models'
         ordering = ['vendor', 'model']
 
+    def __str__(self):
+        return u"%s - %s" % (self.vendor, self.model)
     def __unicode__(self):
         return u"%s - %s" % (self.vendor, self.model)
 
@@ -688,6 +690,8 @@ class SystemStatus(models.Model):
         db_table = u'system_statuses'
         ordering = ['status']
 
+    def __str__(self):
+        return self.status
     def __unicode__(self):
         return self.status
 

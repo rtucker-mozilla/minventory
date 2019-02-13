@@ -80,7 +80,7 @@ def ajax_csv_exporter(request):
 
     systems = obj_map['SYS']
 
-    system_fields = [
+    system_fields = 
         field.name
         for field in System._meta.fields
         if field.name not in attr_ignore
