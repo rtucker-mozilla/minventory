@@ -1,11 +1,12 @@
 import operator
 import re
-import StringIO
 import csv
+import io
 
 from django.core.exceptions import ValidationError
 from mcsv.resolver import Resolver
 from systems import models as sys_models
+import functools
 
 # XXX so much stripping going on
 
@@ -26,25 +27,25 @@ class Generator(object):
         self.meta_bundles = [
             (handle, b(self.r))
             for handle, b
-            in self.r.metas.iteritems()
+            in self.r.metas.items()
         ]
 
         self.system_attr_bundles = [
             (handle, b(self.r))
             for handle, b
-            in self.r.system_attrs.iteritems()
+            in self.r.system_attrs.items()
         ]
 
         self.system_related_bundles = [
             (handle, b(self.r))
             for handle, b
-            in self.r.system_relateds.iteritems()
+            in self.r.system_relateds.items()
         ]
 
         self.system_kv_bundles = [
             (handle, b(self.r))
             for handle, b
-            in self.r.system_kvs.iteritems()
+            in self.r.system_kvs.items()
         ]
         """
         Here we want to make a list of callbacks that will get chained into one
@@ -87,7 +88,7 @@ class Generator(object):
                         c = lambda el: bool(
                             re.search('^{0}$'.format(header), el)
                         )
-                        return reduce(
+                        return functools.reduce(
                             operator.or_, map(c, bundle['values']), False
                         )
 
@@ -184,13 +185,13 @@ def csv_import(csv_text, save=True, primary_attr='hostname'):
         return map(lambda s: s.strip().lower(), (header.split('%')[0], header))
 
     ret = []
-    f = StringIO.StringIO(csv_text)
+    f = io.StringIO(csv_text)
     reader = csv.reader(f, skipinitialspace=True)
 
     def has_something(line):
-        return reduce(lambda a, b: b or a, line, False)
+        return functools.reduce(lambda a, b: b or a, line, False)
 
-    for line in [map(lambda s: s.strip(), line) for line in reader]:
+    for line in [list(map(lambda s: s.strip(), line)) for line in reader]:
         if not has_something(line):  # allow blank lines
             continue
         if not generator:
@@ -212,7 +213,7 @@ def csv_import(csv_text, save=True, primary_attr='hostname'):
             s = sys_models.System.objects.get(**get_params)
             orig_system = sys_models.System.objects.get(pk=s.pk)
 
-            for attr, value in vars(mock_s).iteritems():
+            for attr, value in vars(mock_s).items():
                 if attr.startswith('_'):
                     continue
                 setattr(s, attr, value)
@@ -236,4 +237,4 @@ def main(fname):
     with open(fname, 'r') as fd:
         csv_import(fd.readlines())
 
-    print query.strip(' OR ')
+    print(query.strip(' OR '))

@@ -13,20 +13,17 @@ from django.utils import translation
 from django.forms.formsets import formset_factory
 
 
-import _mysql_exceptions
-
-import models
 from middleware.restrict_to_remote import allow_anyone,sysadmin_only
 
 import re
 from django.test.client import RequestFactory
 from jinja2.filters import contextfilter
 
-import models
+from systems import models
 from systems.models import System, SystemStatus
 from middleware.restrict_to_remote import allow_anyone,sysadmin_only
 import simplejson as json
-from forms import SystemForm
+from systems.forms import SystemForm
 
 # Import resources
 
@@ -129,7 +126,7 @@ def list_all_systems_ajax(request):
     if search_term is None:
         end_display = int(iDisplayStart) + int(iDisplayLength)
         system_count = models.System.objects.all().count()
-        systems = models.System.objects.all()[iDisplayStart:end_display]
+        systems = models.System.objects.all()[int(iDisplayStart):int(end_display)]
         the_data = build_json(request, systems, sEcho, system_count, iDisplayLength, sort_col, sort_dir)
 
     if search_term is not None and len(search_term) > 0:
@@ -217,7 +214,7 @@ def build_json(request, systems, sEcho, total_records, display_count, sort_col, 
         #sort_nicely(system_list)
         counter = 0
         for system in system_list:
-            if counter < display_count:
+            if int(counter) < int(display_count):
                 the_data += '["%i,%s","%s","%s","%s","%s,%s", "%s", "%s", "%i"],' % (system['id'],system['hostname'], system['serial'],system['asset_tag'],system['server_model'],system['system_rack_id'], system['system_rack'], system['oob_ip'], system['system_status'], system['id'])
                 counter += 1
             else:
@@ -297,8 +294,8 @@ def save_key_value(request, id):
     try:
         tmp = models.KeyValue.objects.get(id=id)
         system = tmp.system
-    except Exception, e:
-        print e
+    except (Exception, e):
+        print(e)
         pass
 
 
@@ -323,7 +320,7 @@ def save_key_value(request, id):
             if re.search('^nic\.(\d+)\.ipv4_address', str(post_key).strip() ):
                 try:
                     acl.check_ip_not_exist_other_system(system, post_value)
-                except Exception, e:
+                except (Exception, e):
                     resp['success'] = False
                     resp['errorMessage'] = str(e)
                     return HttpResponse(json.dumps(resp))
@@ -331,13 +328,13 @@ def save_key_value(request, id):
                 existing_dhcp_scope = models.KeyValue.objects.filter(obj=kv.system).filter(key='nic.%s.dhcp_scope.0' % matches.group(1))[0].value
                 if existing_dhcp_scope is not None:
                     models.ScheduledTask(task=existing_dhcp_scope, type='dhcp').save()
-            except Exception, e:
+            except (Exception, e):
                 pass
             try:
                 existing_reverse_dns_zone = models.KeyValue.objects.filter(obj=kv.system).filter(key='nic.%s.reverse_dns_zone.0' % matches.group(1))[0].value
                 if existing_reverse_dns_zone is not None:
                     models.ScheduledTask(task=existing_reverse_dns_zone, type='reverse_dns_zone').save()
-            except Exception, e:
+            except (Exception, e):
                 pass
         try:
             kv.key = request.POST.get('key').strip()
@@ -355,25 +352,25 @@ def save_key_value(request, id):
                 new_reverse_dns_zone = None
                 try:
                     new_dhcp_scope = models.KeyValue.objects.filter(obj=kv.system).filter(key='nic.%s.dhcp_scope.0' % matches.group(1))[0].value
-                except Exception, e:
+                except (Exception, e):
                     pass
 
                 try:
                     new_reverse_dns_zone = models.KeyValue.objects.filter(obj=kv.system).filter(key='nic.%s.reverse_dns_zone.0' % matches.group(1))[0].value
-                except Exception, e:
+                except (Exception, e):
                     pass
                 if new_dhcp_scope is not None:
                     try:
                         models.ScheduledTask(task=new_dhcp_scope, type='dhcp').save()
-                    except Exception, e:
-                        print e
+                    except (Exception, e):
+                        print(e)
                         ##This is due to the key already existing in the db
                         pass
                 if new_reverse_dns_zone is not None:
                     try:
                         models.ScheduledTask(task=new_reverse_dns_zone, type='reverse_dns_zone').save()
-                    except Exception ,e:
-                        print e
+                    except (Exception, e):
+                        print(e)
                         ##This is due to the key already existing in the db
                         pass
 
@@ -391,7 +388,7 @@ def create_key_value(request, id):
     if 'value' in request.POST:
         value = request.POST['value'].strip()
     kv = models.KeyValue(obj=system,key=key,value=value)
-    print "Key is %s: Value is %s." % (key, value)
+    print("Key is %s: Value is %s." % (key, value))
     kv.save();
     matches = re.search('^nic\.(\d+)', str(kv.key) )
     if matches:
@@ -608,7 +605,7 @@ def system_delete(request, id):
     if kv_length == 0:
         try:
             system.delete()
-        except IntegrityError, e:
+        except(IntegrityError, e):
             e_str = "Key/Value store exists"
             content = "Unable to Delete system: {message}".format(message=e)
             return render_to_response(
@@ -709,7 +706,7 @@ def racks_by_site(request, site_pk=0):
 
 @allow_anyone
 def racks(request):
-    from forms import RackFilterForm
+    from systems.forms import RackFilterForm
     filter_form = RackFilterForm(request.GET)
 
     racks = models.SystemRack.objects.select_related('site')
@@ -843,7 +840,7 @@ def server_model_create(request):
         RequestContext(request))
 def server_model_edit(request, object_id):
     server_model = get_object_or_404(models.ServerModel, pk=object_id)
-    from forms import ServerModelForm
+    from systems.forms import ServerModelForm
     initial = {}
     if request.method == 'POST':
         form = ServerModelForm(request.POST, instance=server_model)
@@ -978,8 +975,8 @@ def csv_import(request):
                 s = models.System(**system_data)
                 try:
                     s.full_clean()
-                except ValidationError, e:
-                    print e
+                except (ValidationError, e):
+                    print(e)
                 else:
                     s.save()
                     new_systems += 1

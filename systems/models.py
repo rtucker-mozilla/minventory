@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save
 from django.db.models.query import QuerySet
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from settings import BUG_URL
 
@@ -117,7 +117,7 @@ class BaseKeyValue(models.Model):
                                   key_attr)
         try:
             validate()
-        except TypeError, e:
+        except (TypeError, e):
             # We want to catch when the validator didn't accept the correct
             # number of arguements.
             raise ValidationError("%s" % str(e))
@@ -195,7 +195,7 @@ def validate_label(label, valid_chars=None):
     return
 
 def _name_type_check(name):
-    if type(name) not in (str, unicode):
+    if type(name) not in (str,):
         raise ValidationError("Error: A name must be of type str.")
 
 def validate_name(fqdn):
@@ -323,7 +323,7 @@ class Site(models.Model):
     name = models.CharField(
         max_length=255, validators=[validate_site_name], blank=True
     )
-    parent = models.ForeignKey("self", null=True, blank=True)
+    parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE)
 
     search_fields = ('full_name',)
 
@@ -469,7 +469,7 @@ class Contract(models.Model):
     contract_link = models.CharField(max_length=255, blank=True)
     phone = models.CharField(max_length=40, blank=True)
     expiration = models.DateTimeField(null=True, blank=True)
-    system = models.ForeignKey('System')
+    system = models.ForeignKey('System', on_delete=models.CASCADE)
     created_on = models.DateTimeField(null=True, blank=True)
     updated_on = models.DateTimeField(null=True, blank=True)
 
@@ -532,7 +532,7 @@ class ApiManager(models.Manager):
 
 
 class KeyValue(BaseKeyValue):
-    obj = models.ForeignKey('System', null=True)
+    obj = models.ForeignKey('System', null=True, on_delete=models.CASCADE)
     objects = models.Manager()
     expanded_objects = ApiManager()
 
@@ -585,7 +585,7 @@ class NetworkAdapter(models.Model):
 
 
 class Mac(models.Model):
-    system = models.ForeignKey('System')
+    system = models.ForeignKey('System', on_delete=models.CASCADE)
     mac = models.CharField(unique=True, max_length=17)
 
     class Meta:
@@ -628,8 +628,8 @@ class ServerModel(models.Model):
 
 class SystemRack(models.Model):
     name = models.CharField(max_length=255)
-    location = models.ForeignKey('Location', null=True)
-    site = models.ForeignKey('Site', null=True)
+    location = models.ForeignKey('Location', null=True, on_delete=models.CASCADE)
+    site = models.ForeignKey('Site', null=True, on_delete=models.CASCADE)
 
     search_fields = ('name', 'site__name')
 
@@ -705,11 +705,11 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
 
     # Related Objects
     operating_system = models.ForeignKey(
-        'OperatingSystem', blank=True, null=True)
-    system_type = models.ForeignKey('SystemType', blank=True, null=True)
-    system_status = models.ForeignKey('SystemStatus', blank=True, null=True)
-    server_model = models.ForeignKey('ServerModel', blank=True, null=True)
-    system_rack = models.ForeignKey('SystemRack', blank=True, null=True)
+        'OperatingSystem', blank=True, null=True, on_delete=models.CASCADE)
+    system_type = models.ForeignKey('SystemType', blank=True, null=True, on_delete=models.CASCADE)
+    system_status = models.ForeignKey('SystemStatus', blank=True, null=True, on_delete=models.CASCADE)
+    server_model = models.ForeignKey('ServerModel', blank=True, null=True, on_delete=models.CASCADE)
+    system_rack = models.ForeignKey('SystemRack', blank=True, null=True, on_delete=models.CASCADE)
 
     hostname = models.CharField(
         unique=True, max_length=255, validators=[validate_name]
@@ -1143,8 +1143,8 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
             try:
                 self.hostname = new_hostname
                 self.save()
-            except Exception, e:
-                print "ERROR - %s" % (e)
+            except (Exception, e):
+                print("ERROR - {}".format(e))
 
     def get_switches(self):
         return System.objects.filter(is_switch=1)
@@ -1191,7 +1191,7 @@ class SystemChangeLog(models.Model):
     changed_by = models.CharField(max_length=255)
     changed_date = models.DateTimeField()
     changed_text = models.TextField()
-    system = models.ForeignKey(System)
+    system = models.ForeignKey(System, on_delete=models.CASCADE)
 
     class Meta:
         db_table = u'systems_change_log'
@@ -1202,7 +1202,7 @@ class UserProfile(models.Model):
         ('epager', 'epager'),
         ('sms', 'sms'),
     )
-    user = models.ForeignKey(User, unique=True)
+    user = models.ForeignKey(User, unique=True, on_delete=models.CASCADE)
 
     is_desktop_oncall = models.BooleanField()
     is_sysadmin_oncall = models.BooleanField()
