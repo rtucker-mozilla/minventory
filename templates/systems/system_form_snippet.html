@@ -80,54 +80,29 @@
         <br />
 <div id='system-tabs'>
     <ul>
-        <li><a href="#tabs-1">Server Options</a></li>
-        <li><a href="#tabs-2">Notes</a></li>
-        <li><a href="#tabs-3">Licenses</a></li>
-        <li id='network_adapter_link'><a href="#tabs-4">Key/Value Store</a></li>
-        <li><a href="#tabs-5">Revision History</a></li>
+        <li><a href="#tabs-1">Notes</a></li>
+        <li><a href="#tabs-2">Licenses</a></li>
+        <li id='network_adapter_link'><a href="#tabs-3">Key/Value Store</a></li>
+        <li><a href="#tabs-4">Revision History</a></li>
     </ul>
 
-	<div id="tabs-1" style='min-height: 200px;'>
-	<ul style="list-style-type:none;">
-        <li class="formline">
-            <label for="id_is_dns_server">Is DNS Server?</label>
-            {{ form.is_dns_server }}
-        </li>
-        <li class="formline">
-            <label for="id_is_dhcp_server">Is DHCP Server?</label>
-            {{ form.is_dhcp_server }}
-        </li>
-        <li class="formline">
-            <label for="id_is_nagios_server">Is Nagios Server?</label>
-            {{ form.is_nagios_server }}
-        </li>
-        <li class="formline">
-            <label for="id_is_puppet_server">Is Puppet Server?</label>
-            {{ form.is_puppet_server }}
-        </li>
-        <li class="formline">
-            <label for="id_is_switch">Is Switch?</label>
-            {{ form.is_switch }}
-        </li>
-	</ul>
-	</div>
 	<!--<div>
 			<span id="network_adapters_div" class="network_adapters_div" > 
 			</span>
 		
     </div>-->
-	<div style="height: 300px;" id="tabs-2">
+	<div style="height: 300px;" id="tabs-1">
 		    {{ form.notes }}
 	</div>
-	<div style="height: 300px;" id="tabs-3">
+	<div style="height: 300px;" id="tabs-2">
 		    {{ form.licenses }}
 	</div>
-	<div id="tabs-4">
+	<div id="tabs-3">
         <span id="key_value_store_expansion_help_span"><a id="key_value_store_expansion_help"  rel="#key_value_store_help_div" style='padding-left: 5px;'>Usage Help</a></span>
         <span id="key_value_store_quick_add_span"><a id="key_value_store_quick_add_adapter"  rel="#key_value_store_quick_add_adapter_div" style='padding-left: 5px;'>Add Adapter</a></span>
 		<span id="key_value_store_span"></span>
 	</div>
-	<div id="tabs-5" style="height: 300px;  width: 900px; overflow-y: scroll; overflow-x: hidden;">
+	<div id="tabs-4" style="height: 300px;  width: 900px; overflow-y: scroll; overflow-x: hidden;">
 		<span id="revision_history_span" style='width: 650px;'>
 			<table style='width: 900px;' cellpadding='2' border='1' cellspacing='0'>
 			{% for r in revision_history %}

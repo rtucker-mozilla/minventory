@@ -692,6 +692,7 @@ class SystemStatus(models.Model):
 
     def __str__(self):
         return self.status
+
     def __unicode__(self):
         return self.status
 
@@ -736,16 +737,6 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
     purchase_price = models.CharField(max_length=255, blank=True, null=True)
     change_password = models.DateTimeField(null=True, blank=True)
     ram = models.CharField(max_length=255, blank=True, null=True)
-    is_dhcp_server = models.IntegerField(
-        choices=YES_NO_CHOICES, blank=True, null=True)
-    is_dns_server = models.IntegerField(
-        choices=YES_NO_CHOICES, blank=True, null=True)
-    is_puppet_server = models.IntegerField(
-        choices=YES_NO_CHOICES, blank=True, null=True)
-    is_nagios_server = models.IntegerField(
-        choices=YES_NO_CHOICES, blank=True, null=True)
-    is_switch = models.IntegerField(
-        choices=YES_NO_CHOICES, blank=True, null=True)
     warranty_start = models.DateField(blank=True, null=True, default=None)
     warranty_end = models.DateField(blank=True, null=True, default=None)
 
