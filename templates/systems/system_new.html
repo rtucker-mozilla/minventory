@@ -3,8 +3,8 @@
 {% block head %}
 <script type='text/javascript' src='/static/js/jquery.validate.min.js'></script>
 <!-- standalone page styling (can be removed) -->
-<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/standalone.css"/>	
-<script src="{{ MEDIA_URL }}javascripts/system_form_snippet.js"></script>
+<link rel="stylesheet" type="text/css" href="{% static "css/standalone.css" %}"/>	
+<script src="{% static "javascripts/system_form_snippet.js" %}""></script>
 
 
 	
@@ -148,7 +148,7 @@ ul.css-tabs a.current {
 
 
 </style>
-<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/tabs.css" />
+<link rel="stylesheet" type="text/css" href="{% static "css/tabs.css" %}" />
         {% endblock %}
 {% block content %}
     <h2>New system</h2>
