@@ -274,7 +274,7 @@ class Resolver(Generics):
 
         try:
             obj = self.get_realted_from_dict(search, Klass)
-        except FieldError, e:
+        except (FieldError, e):
             raise Exception(
                 "When trying to use resolve a(n) {0}, got the error "
                 "{1}".format(Klass.__name__, str(e))
@@ -359,21 +359,6 @@ class Resolver(Generics):
             'filter_fields': self.get_field_names(sys_models.OperatingSystem),
             'values': ['operating_system'],
             'handler': _operating_system
-        }
-        return bundle
-
-    @system_related
-    def allocation(self, **kwargs):
-        def _allocation(s, header, value):
-            s.allocation = self.get_related(
-                header, value, sys_models.Allocation
-            )
-            return s
-        bundle = {
-            'name': 'allocation',
-            'filter_fields': self.get_field_names(sys_models.Allocation),
-            'values': ['allocation'],
-            'handler': _allocation
         }
         return bundle
 

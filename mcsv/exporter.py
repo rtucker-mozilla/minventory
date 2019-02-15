@@ -4,7 +4,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from systems.models import System
 
 import csv
-import cStringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 import re
 
 export_classes = dict(map(

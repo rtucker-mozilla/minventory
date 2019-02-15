@@ -12,7 +12,7 @@ from systems.models import System
 
 import csv
 import re
-import cStringIO
+from io import StringIO
 import simplejson as json
 
 
@@ -33,12 +33,12 @@ def ajax_csv_importer(request):
     def do_csv_import(data):
         try:
             return csv_import(data, primary_attr=primary_attr, save=save)
-        except ValidationError, e:
+        except ValidationError as e:
             #transaction.rollback()
-            return {'error': e.messages}
-        except Exception, e:
+            return {'error': str(e)}
+        except Exception as e:
             #transaction.rollback()
-            return {'error': ['Error: ' + e.message]}
+            return {'error': ['Error: ' + str(e)]}
         # finally:
             # transaction.commit()
 
@@ -80,7 +80,7 @@ def ajax_csv_exporter(request):
 
     systems = obj_map['SYS']
 
-    system_fields = [
+    system_fields = 
         field.name
         for field in System._meta.fields
         if field.name not in attr_ignore

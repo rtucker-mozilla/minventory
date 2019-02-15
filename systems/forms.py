@@ -1,11 +1,11 @@
 from django import forms
-from django.forms.extras.widgets import SelectDateWidget
+from django.forms.widgets import SelectDateWidget
 try:
     from functools import wraps
 except ImportError:
     from django.utils.functional import wraps  # Python 2.3, 2.4 fallback.
 
-import models
+from systems import models
 from datetime import datetime
 
 from systems.constants import VALID_SYSTEM_SUFFIXES
@@ -114,11 +114,6 @@ class SystemForm(forms.ModelForm):
                   'system_rack',
                   'system_type',
                   'rack_order',
-                  'is_dhcp_server',
-                  'is_dns_server',
-                  'is_nagios_server',
-                  'is_puppet_server',
-                  'is_switch',
                   'change_password',
                   'operating_system',
                   'server_model',
