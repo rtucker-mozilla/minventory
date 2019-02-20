@@ -948,7 +948,6 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
         self.full_clean()
         with reversion.create_revision():
             request = kwargs.pop('request', None)
-            import pdb; pdb.set_trace()
             if request:
                 try:
                     reversion.set_user(request.user)
