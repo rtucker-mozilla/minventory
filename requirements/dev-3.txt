@@ -22,10 +22,6 @@ mysqlclient==1.4.2
 Parsley==1.1
 perf==0.1
 ply==3.4
-pycairo==1.18.0
-pycurl==7.43.0.2
-PyGObject==3.30.4
-pygpgme==0.3
 PyMySQL==0.9.3
 python-dateutil==2.8.0
 pytz==2018.9
