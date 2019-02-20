@@ -588,8 +588,6 @@ def system_new(request):
 def system_edit(request, id):
     system = get_object_or_404(models.System, pk=id)
     versions = Version.objects.get_for_object(system)
-    import pdb; pdb.set_trace()
-    current = 'asdf'
 
     return system_view(request, 'systems/system_edit.html', {
         'system': system,
