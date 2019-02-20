@@ -3,6 +3,7 @@ import csv
 from django.core.exceptions import ValidationError
 from django.db import transaction, IntegrityError
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
+from reversion.models import Version
 
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
@@ -586,10 +587,13 @@ def system_new(request):
 @csrf_exempt
 def system_edit(request, id):
     system = get_object_or_404(models.System, pk=id)
+    versions = Version.objects.get_for_object(system)
+    import pdb; pdb.set_trace()
+    current = 'asdf'
 
     return system_view(request, 'systems/system_edit.html', {
         'system': system,
-        'revision_history':models.SystemChangeLog.objects.filter(system=system).order_by('-id')
+        'revision_history':versions
         },
         system
     )
@@ -755,6 +759,21 @@ def racks(request):
            },
            RequestContext(request))
 
+
+def system_revision(request, id):
+    revision = Version.objects.get(pk=id)
+    display_data = []
+    for f in revision.field_dict.keys():
+        display_data.append("{}: {}".format(f, revision.field_dict[f]))
+    if request.method == "POST":
+        revision.revert()
+        return HttpResponseRedirect("/systems/edit/{}/".format(revision.object.id))
+    else:
+        return render_to_response('systems/revision_confirm_restore.html', {
+                'revision': revision,
+                'display_data': display_data,
+            },
+            RequestContext(request))
 
 def rack_delete(request, object_id):
     from models import SystemRack

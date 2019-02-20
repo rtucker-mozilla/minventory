@@ -103,17 +103,27 @@
 		<span id="key_value_store_span"></span>
 	</div>
 	<div id="tabs-4" style="height: 300px;  width: 900px; overflow-y: scroll; overflow-x: hidden;">
-		<span id="revision_history_span" style='width: 650px;'>
-			<table style='width: 900px;' cellpadding='2' border='1' cellspacing='0'>
-			{% for r in revision_history %}
-			<tr>
-                <td style="width:200px;">{{r.changed_date}}{% if r.changed_by != "changed_user" %}({{ r.changed_by }}){% endif %}</td>
-				<td style='width: 600px;'><pre style='width: 650px;'>{{r.changed_text}}</pre></td>
-			</tr>
-			<tr><td colspan='2' style='width: 650px;'><hr></td></tr>
+        <span id="revision_history_span" style='width: 650px;'>
+            <form method="post" action="/systems/revert_revision">
+                <table style='width: 900px;' cellpadding='2' border='1' cellspacing='0'>
+                <thead>
+                    <tr>
+                        <td>Date</td>
+                        <td>User</td>
+                        <td>Action</td>
+                    </tr>
+                </thead>
+                {% for r in revision_history %}
+                <tr>
+                    <td>{{r.revision.date_created}}</td>
+                    <td>{{r.revision.user}}</td>
+                    <td><input type="button" onclick="window.location.href='/systems/revision/{{r.id}}/';" value="Revert" /></td>
+                </tr>
+                <tr><td colspan='3'><hr></td></tr>
+                {%endfor%}
+                </table>
+            </form>
 
-			{%endfor%}
-		</table>
 		
 		
 		</span>

@@ -40,9 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'django_filters',
-#    'truth',
-#    'dhcp',
-#    'api_v2',
+    'reversion',
 ]
 
 
@@ -104,6 +102,7 @@ MIDDLEWARE_CLASSES = (
 #    'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.RemoteUserMiddleware',
+    'reversion.middleware.RevisionMiddleware',
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 

@@ -21,13 +21,12 @@ urlpatterns = [
     url(r'^show/(?P<id>\d+)[/]$', views.system_show),
     url(r'^show/a(?P<id>\d+)[/]$', views.system_show_by_asset_tag),
     url(r'^edit/(?P<id>\d+)[/]$', views.system_edit, name="system-edit"),
+    url(r'^revision/(?P<id>\d+)[/]$', views.system_revision),
     url(r'^delete/(\d+)[/]$', views.system_delete),
     url(r'^ajax_check_dupe_nic/(?P<system_id>\d+)/(?P<adapter_number>\d+)[/]$', views.check_dupe_nic),
     url(r'^system_auto_complete_ajax[/]$', views.system_auto_complete_ajax),
     url(r'^ajax_check_dupe_nic_name/(?P<system_id>\d+)/(?P<adapter_name>.*)[/]$', views.check_dupe_nic_name),
     url(r'^sync_external_data/$', views.sync_external_data_ajax),
-
-
     url(r'^csv/$', views.system_csv, name="system-csv"),
     url(r'^csv/import/$', views.csv_import, name='system-csv-import'),
     url(r'^racks/$', views.racks, name='system_rack-list'),

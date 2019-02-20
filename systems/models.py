@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from django.db.models.query import QuerySet
 from django.contrib.auth.models import User
 from django.urls import reverse
+import reversion
 
 from settings import BUG_URL
 
@@ -592,6 +593,7 @@ class Mac(models.Model):
         db_table = u'macs'
 
 
+@reversion.register
 class OperatingSystem(models.Model):
     name = models.CharField(max_length=255, blank=True)
     version = models.CharField(max_length=255, blank=True)
@@ -612,6 +614,7 @@ class OperatingSystem(models.Model):
         return ('name', 'version')
 
 
+@reversion.register
 class ServerModel(models.Model):
     vendor = models.CharField(max_length=255, blank=True)
     model = models.CharField(max_length=255, blank=True)
@@ -632,6 +635,7 @@ class ServerModel(models.Model):
         return ('vendor', 'model', 'part_number', 'description')
 
 
+@reversion.register
 class SystemRack(models.Model):
     name = models.CharField(max_length=255)
     location = models.ForeignKey('Location', null=True, on_delete=models.CASCADE)
@@ -671,6 +675,7 @@ class SystemRack(models.Model):
         return self.system_set.select_related().order_by('rack_order')
 
 
+@reversion.register
 class SystemType(models.Model):
     type_name = models.CharField(max_length=255, blank=True)
 
@@ -688,6 +693,7 @@ class SystemType(models.Model):
         return ('type_name',)
 
 
+@reversion.register
 class SystemStatus(models.Model):
     status = models.CharField(max_length=255, blank=True)
     color = models.CharField(max_length=255, blank=True)
@@ -707,7 +713,7 @@ class SystemStatus(models.Model):
     def get_api_fields(cls):
         return ('status',)
 
-
+@reversion.register(follow=["system_type","operating_system","system_status","server_model","system_rack"])
 class System(Refresher, DirtyFieldsMixin, models.Model):
 
     YES_NO_CHOICES = (
@@ -938,9 +944,19 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
         return super(System, self).bind_render_record(**data)
 
     def save(self, *args, **kwargs):
-        self.save_history(kwargs)
+        #self.save_history(kwargs)
         self.full_clean()
-        super(System, self).save(*args, **kwargs)
+        with reversion.create_revision():
+            request = kwargs.pop('request', None)
+            import pdb; pdb.set_trace()
+            if request:
+                try:
+                    reversion.set_user(request.user)
+                except AttributeError:
+                    # No user set
+                    pass
+
+            super(System, self).save(*args, **kwargs)
 
     def clean(self):
         # Only do this validation on new systems. Current data is so poor that
@@ -1204,7 +1220,7 @@ class UserProfile(models.Model):
         ('epager', 'epager'),
         ('sms', 'sms'),
     )
-    user = models.ForeignKey(User, unique=True, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, unique=True, on_delete=models.CASCADE)
 
     is_desktop_oncall = models.BooleanField()
     is_sysadmin_oncall = models.BooleanField()

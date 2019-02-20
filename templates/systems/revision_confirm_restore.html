@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+    Are your sure you wish to restore this data for {{revision.object.hostname}}?: 
+    <form method="post">
+        <input type="submit" value="Yes, I'm sure" />
+    </form>
+    <pre>
+    {% for f in display_data %}
+        {{ f }}
+
+
+    {% endfor %}
+    </pre>
+{% endblock %}

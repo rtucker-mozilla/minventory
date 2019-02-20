@@ -42,7 +42,10 @@ class ServerModelTypeField(serializers.Field):
         except (models.ServerModel.DoesNotExist, ValueError):
             pass
         try:
-            obj = models.ServerModel.objects.filter(model=data).first()
+            vendor = data.split("-")[0]
+            model = "-".join(data.split("-")[1:])
+            obj = models.ServerModel.objects.filter(vendor=vendor,model=model).first()
+            print(obj)
         except models.ServerModel.DoesNotExist:
             pass
         if not obj:
@@ -240,6 +243,10 @@ class SystemSerializer(serializers.ModelSerializer):
                 )
         return data
 
+    def update(self, *args, **kwargs):
+        self.instance.save(request=self.context['request'])
+        return self.instance
+
     class Meta:
         model = models.System
         fields = '__all__'
@@ -380,7 +387,7 @@ class SystemViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
                 error_title = serializer.errors[error][0].title()
                 error_resp = {'non_field_errors': [error_title]}
                 raise serializers.ValidationError(error_resp)
-        self.perform_update(serializer)
+        serializer.save(request=request)
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_200_OK, headers=headers
