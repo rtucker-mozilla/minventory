@@ -114,12 +114,14 @@
                     </tr>
                 </thead>
                 {% for r in revision_history %}
-                <tr>
-                    <td>{{r.revision.date_created}}</td>
-                    <td>{{r.revision.user}}</td>
-                    <td><input type="button" onclick="window.location.href='/systems/revision/{{r.id}}/';" value="Revert" /></td>
-                </tr>
-                <tr><td colspan='3'><hr></td></tr>
+                    {% if r.id != system.current_revision %}
+                    <tr>
+                        <td>{{r.revision.date_created}}</td>
+                        <td>{{r.revision.user}}</td>
+                        <td><input type="button" onclick="window.location.href='/systems/revision/{{r.id}}/';" value="Revert" /></td>
+                    </tr>
+                    <tr><td colspan='3'><hr></td></tr>
+                    {% endif %}
                 {%endfor%}
                 </table>
             </form>
