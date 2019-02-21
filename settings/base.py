@@ -97,8 +97,7 @@ DEBUG_TOOLBAR_PANELS = (
     'debug_toolbar.panels.signals.SignalDebugPanel',
     'debug_toolbar.panels.logger.LoggingPanel',
 )
-MIDDLEWARE_CLASSES = (
-    'middleware.disable_csrf.DisableCSRF',
+MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
 #    'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
