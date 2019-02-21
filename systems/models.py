@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save
 from django.db.models.query import QuerySet
 from django.contrib.auth.models import User
+from django.dispatch import receiver
 from django.urls import reverse
 import reversion
 
@@ -752,6 +753,7 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
     ram = models.CharField(max_length=255, blank=True, null=True)
     warranty_start = models.DateField(blank=True, null=True, default=None)
     warranty_end = models.DateField(blank=True, null=True, default=None)
+    current_revision = models.IntegerField(default=0)
 
     objects = models.Manager()
     build_objects = BuildManager()
@@ -955,6 +957,7 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
                     # No user set
                     pass
 
+            import pdb; pdb.set_trace()
             super(System, self).save(*args, **kwargs)
 
     def clean(self):
@@ -1279,3 +1282,12 @@ class UserProfile(models.Model):
 
         def get_current_metrics_oncall(self):
             self.filter(current_metrics_oncall=1).select_related()
+
+from reversion.signals import post_revision_commit
+@receiver(post_revision_commit)
+def on_revision_commit(sender, **kwargs):
+    revision = kwargs['revision']
+    system =  System.objects.get(pk=kwargs['versions'][0].object.id)
+    system.current_revision = revision.version_set.all().last().id
+    # system.current_revision = revision.id
+    system.save()

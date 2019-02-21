@@ -4,11 +4,8 @@
     <form method="post">
         <input type="submit" value="Yes, I'm sure" />
     </form>
-    <pre>
-    {% for f in display_data %}
-        {{ f }}
-
-
+    {% for entry in compare %}
+        {{ entry.field }}
+        {{ entry.diff }}
     {% endfor %}
-    </pre>
 {% endblock %}

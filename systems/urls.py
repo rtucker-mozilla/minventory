@@ -21,7 +21,7 @@ urlpatterns = [
     url(r'^show/(?P<id>\d+)[/]$', views.system_show),
     url(r'^show/a(?P<id>\d+)[/]$', views.system_show_by_asset_tag),
     url(r'^edit/(?P<id>\d+)[/]$', views.system_edit, name="system-edit"),
-    url(r'^revision/(?P<id>\d+)[/]$', views.system_revision),
+    url(r'^revision/(?P<pk>\d+)[/]$', views.SystemRevision.as_view()),
     url(r'^delete/(\d+)[/]$', views.system_delete),
     url(r'^ajax_check_dupe_nic/(?P<system_id>\d+)/(?P<adapter_number>\d+)[/]$', views.check_dupe_nic),
     url(r'^system_auto_complete_ajax[/]$', views.system_auto_complete_ajax),
@@ -46,3 +46,6 @@ urlpatterns = [
     url(r'^server_models/show/(?P<object_id>\d+)/$', views.server_model_show, name="server_model-show"),
     #url(r'^server_models/delete/(?P<object_id>\d+)/$', delete_object, gen_del_dict(ServerModel, 'server_model-list), name='server_model-delete),
 ]
+
+
+

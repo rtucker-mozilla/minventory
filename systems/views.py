@@ -758,20 +758,52 @@ def racks(request):
            RequestContext(request))
 
 
-def system_revision(request, id):
-    revision = Version.objects.get(pk=id)
-    display_data = []
-    for f in revision.field_dict.keys():
-        display_data.append("{}: {}".format(f, revision.field_dict[f]))
-    if request.method == "POST":
-        revision.revert()
-        return HttpResponseRedirect("/systems/edit/{}/".format(revision.object.id))
-    else:
-        return render_to_response('systems/revision_confirm_restore.html', {
-                'revision': revision,
-                'display_data': display_data,
-            },
-            RequestContext(request))
+from django.views.generic.edit import UpdateView
+from reversion_compare.mixins import CompareMixin
+from reversion.revisions import create_revision as create_revision_base
+
+class SystemRevision(CompareMixin, UpdateView):
+    template_name = "systems/revision_confirm_restore.html"
+    model = Version
+    fields = '__all__'
+    compare_exclude = ['current_revision']
+
+    def get_queryset(self):
+        self.queryset = Version.objects.all()
+        return self.queryset
+
+    def post(self, request, pk=None):
+        version = Version.objects.get(pk=pk)
+        system = System.objects.get(pk=version.object_id)
+        system.current_revision = pk
+        system.save()
+        version.revision.revert()
+        return HttpResponseRedirect("/systems/show/{}/".format(version.object.id))
+
+    def get_context_data(self, **kwargs):
+        from reversion_compare.mixins import CompareMixin
+        context = super().get_context_data(**kwargs)
+        id = self.kwargs['pk']
+        version = Version.objects.get(pk=id)
+        system = System.objects.get(pk=version.object_id)
+        if system.current_revision > 0:
+            current = Version.objects.get(pk=system.current_revision)
+        else:
+            current = Version.objects.get_for_object(version.object).last()
+
+        """
+        for rev in _all:
+            import pdb; pdb.set_trace()
+            if _all.is_active():
+                current = rev
+        ##current = _all.first()
+        """
+        context['revision'] = version
+        context['current'] = current
+        compare = self.compare(version.object, current, version)[0]
+        import pdb; pdb.set_trace()
+        context['compare'] = compare
+        return context
 
 def rack_delete(request, object_id):
     from models import SystemRack
