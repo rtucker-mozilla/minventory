@@ -791,17 +791,9 @@ class SystemRevision(CompareMixin, UpdateView):
         else:
             current = Version.objects.get_for_object(version.object).last()
 
-        """
-        for rev in _all:
-            import pdb; pdb.set_trace()
-            if _all.is_active():
-                current = rev
-        ##current = _all.first()
-        """
         context['revision'] = version
         context['current'] = current
         compare = self.compare(version.object, current, version)[0]
-        import pdb; pdb.set_trace()
         context['compare'] = compare
         return context
 

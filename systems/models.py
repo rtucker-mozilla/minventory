@@ -956,8 +956,6 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
                 except AttributeError:
                     # No user set
                     pass
-
-            import pdb; pdb.set_trace()
             super(System, self).save(*args, **kwargs)
 
     def clean(self):
