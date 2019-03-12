@@ -102,7 +102,7 @@ MIDDLEWARE = (
 #    'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.RemoteUserMiddleware',
-    'reversion.middleware.RevisionMiddleware',
+#    'reversion.middleware.RevisionMiddleware',
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 

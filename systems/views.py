@@ -863,7 +863,7 @@ def ajax_racks_by_site(request, site_pk):
     })
 
 def server_model_create(request):
-    from forms import ServerModelForm
+    from .forms import ServerModelForm
     initial = {}
     if request.method == 'POST':
         form = ServerModelForm(request.POST)

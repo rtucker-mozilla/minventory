@@ -1285,7 +1285,9 @@ from reversion.signals import post_revision_commit
 @receiver(post_revision_commit)
 def on_revision_commit(sender, **kwargs):
     revision = kwargs['revision']
-    system =  System.objects.get(pk=kwargs['versions'][0].object.id)
-    system.current_revision = revision.version_set.all().last().id
-    # system.current_revision = revision.id
-    system.save()
+    try:
+        system =  System.objects.get(pk=kwargs['versions'][0].object.id)
+        system.current_revision = revision.version_set.all().last().id
+        system.save()
+    except:
+        return

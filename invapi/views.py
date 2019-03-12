@@ -40,14 +40,24 @@ class ServerModelTypeField(serializers.Field):
             pk_int = int(data)
             obj = models.ServerModel.objects.get(pk=pk_int)
         except (models.ServerModel.DoesNotExist, ValueError):
-            pass
-        try:
-            vendor = data.split("-")[0]
-            model = "-".join(data.split("-")[1:])
-            obj = models.ServerModel.objects.filter(vendor=vendor,model=model).first()
-            print(obj)
-        except models.ServerModel.DoesNotExist:
-            pass
+            obj = None
+        if obj is None:
+            try:
+                vendor = str(data.split("-")[0]).strip()
+                model = str("-".join(data.split("-")[1:])).strip()
+                obj = models.ServerModel.objects.filter(vendor=vendor,model=model).first()
+            except models.ServerModel.DoesNotExist:
+                obj = None
+        if obj is None:
+            try:
+                vendor = str(data.split("-")[0]).strip()
+                model = str("-".join(data.split("-")[1:])).strip()
+                obj = models.ServerModel.objects.filter(model=model).first()
+            except models.ServerModel.DoesNotExist:
+                obj = None
+        if obj is None:
+            tmp = data
+            obj = models.ServerModel.objects.create(vendor=tmp,model=tmp).save()
         if not obj:
             raise serializers.ValidationError(
                 "Unable to find ServerModel {}".format(data),
@@ -217,7 +227,7 @@ class SystemSerializer(serializers.ModelSerializer):
     system_rack = SystemRackField(required=False)
     system_status = SystemStatusField()
     system_type = SystemTypeField()
-    operating_system = OperatingSystemTypeField(required=False)
+    operating_system = OperatingSystemTypeField(required=False, allow_null=True)
     server_model = ServerModelTypeField(required=False)
     warranty_start = WarrantyStartField(required=False)
     warranty_end = WarrantyEndField(required=False)
@@ -242,10 +252,6 @@ class SystemSerializer(serializers.ModelSerializer):
                     "Hostname already used", code=400
                 )
         return data
-
-    def update(self, *args, **kwargs):
-        self.instance.save(request=self.context['request'])
-        return self.instance
 
     class Meta:
         model = models.System
@@ -383,6 +389,7 @@ class SystemViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
             partial=partial
         )
         if not serializer.is_valid():
+            import pdb; pdb.set_trace()
             for error in serializer.errors:
                 error_title = serializer.errors[error][0].title()
                 error_resp = {'non_field_errors': [error_title]}
