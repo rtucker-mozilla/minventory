@@ -131,4 +131,4 @@ ROOT_URLCONF = 'urls'
 BUILD_PATH = '/home/juber/dnsbuilds/'
 
 # HACK HACK This will need to be fixed
-from settings.local import *
+from settings.local import DATABASES, REST_FRAMEWORK, TEMPLATES, ALLOWED_HOSTS
