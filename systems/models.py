@@ -16,9 +16,6 @@ import re
 import socket
 import math
 import string
-
-from django.db import models
-from django.db.models import Q
 from django.core.exceptions import ValidationError
 
 class Refresher(object):
@@ -119,7 +116,7 @@ class BaseKeyValue(models.Model):
                                   key_attr)
         try:
             validate()
-        except (TypeError, e):
+        except TypeError as e:
             # We want to catch when the validator didn't accept the correct
             # number of arguements.
             raise ValidationError("%s" % str(e))
@@ -142,10 +139,6 @@ def validate_mac(mac):
     :returns: The valid mac address.
     :raises: ValidationError
     """
-    if not is_mac.match(mac):
-        raise ValidationError(
-            "Mac Address {0} is not in valid format".format(mac)
-        )
     return mac
 
 def validate_label(label, valid_chars=None):
@@ -415,11 +408,6 @@ class Site(models.Model):
             from systems.models import System
             self.systems = System.objects.all()
         return self.systems.filter(system_rack__in=self.systemrack_set.all())
-
-    def get_allocated_networks(self):
-        """Return a list of all top level networks assocaited with this site"""
-        from core.network.utils import calc_top_level_networks
-        return calc_top_level_networks(self)
 
 class ScheduledTask(models.Model):
     task = models.CharField(max_length=255, blank=False, unique=True)

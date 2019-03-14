@@ -108,7 +108,7 @@ MIDDLEWARE = (
 
 INTERNAL_IPS = ('127.0.0.1','10.22.74.139','10.250.2.54')
 
-def custom_show_toolbar(request):
+def custom_show_toolbar(request): # pylint: disable=unused-argument
     return True # Always show toolbar, for example purposes only.
 
 BUG_URL = 'https://bugzilla.mozilla.org/show_bug.cgi?id='
@@ -131,4 +131,4 @@ ROOT_URLCONF = 'urls'
 BUILD_PATH = '/home/juber/dnsbuilds/'
 
 # HACK HACK This will need to be fixed
-from settings.local import DATABASES, REST_FRAMEWORK, TEMPLATES, ALLOWED_HOSTS
+from settings.local import DATABASES, REST_FRAMEWORK, TEMPLATES, ALLOWED_HOSTS  # pylint: disable=unused-import
