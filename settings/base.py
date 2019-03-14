@@ -98,15 +98,15 @@ DEBUG_TOOLBAR_PANELS = (
     'debug_toolbar.panels.logger.LoggingPanel',
 )
 MIDDLEWARE = (
-    'django.contrib.sessions.middleware.SessionMiddleware',
-#    'django.middleware.locale.LocaleMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.RemoteUserMiddleware',
-#    'reversion.middleware.RevisionMiddleware',
-    #'debug_toolbar.middleware.DebugToolbarMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        # 'django.middleware.locale.LocaleMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.auth.middleware.RemoteUserMiddleware',
+        # 'reversion.middleware.RevisionMiddleware',
+        # 'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
-INTERNAL_IPS = ('127.0.0.1','10.22.74.139','10.250.2.54')
+INTERNAL_IPS = ('127.0.0.1', '10.22.74.139', '10.250.2.54')
 
 def custom_show_toolbar(request): # pylint: disable=unused-argument
     return True # Always show toolbar, for example purposes only.
@@ -131,4 +131,4 @@ ROOT_URLCONF = 'urls'
 BUILD_PATH = '/home/juber/dnsbuilds/'
 
 # HACK HACK This will need to be fixed
-from settings.local import DATABASES, REST_FRAMEWORK, TEMPLATES, ALLOWED_HOSTS  # pylint: disable=unused-import
+from settings.local import DATABASES, REST_FRAMEWORK, TEMPLATES, ALLOWED_HOSTS  # pylint: disable=unused-import,wrong-import-position
