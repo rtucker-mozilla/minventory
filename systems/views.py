@@ -808,10 +808,10 @@ def racks(request):
 
     if filter_form.is_valid():
         if filter_form.cleaned_data['rack']:
-            l_racks = racks.filter(id=filter_form.cleaned_data['rack'])
+            l_racks = l_racks.filter(id=filter_form.cleaned_data['rack'])
             has_query = True
         if filter_form.cleaned_data['site'] and int(filter_form.cleaned_data['site']) > 0:
-            l_racks = racks.filter(site=filter_form.cleaned_data['site'])
+            l_racks = l_racks.filter(site=filter_form.cleaned_data['site'])
             has_query = True
         filter_status = filter_form.cleaned_data['status']
         if filter_status:
