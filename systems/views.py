@@ -3,14 +3,16 @@ import re
 import simplejson as json
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 from django.db import IntegrityError
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import  redirect, get_object_or_404, render, render_to_response
 from django.template import RequestContext
 from django.template.loader import render_to_string
-from django.views.generic.edit import UpdateView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.test.client import RequestFactory
+from django.views.generic.list import ListView
 from reversion.models import Version
 from reversion_compare.mixins import CompareMixin
 from middleware.restrict_to_remote import allow_anyone
@@ -837,6 +839,35 @@ def racks(request):
         }, RequestContext(request))
 
 
+class OperatingSystemDeleteView(DeleteView):
+    model = models.OperatingSystem
+    template_name = "generic_delete.html"
+    fields = '__all__'
+
+    def get_success_url(self):
+        return reverse("operatingsystem-list")
+
+
+class OperatingSystemCreateView(CreateView):
+    model = models.OperatingSystem
+    template_name = "systems/generic_form.html"
+    fields = '__all__'
+
+    def get_success_url(self):
+        return reverse("operatingsystem-list")
+
+class OperatingSystemEditView(UpdateView):
+    model = models.OperatingSystem
+    template_name = "systems/generic_form.html"
+    fields = '__all__'
+
+    def get_success_url(self):
+        return reverse("operatingsystem-list")
+
+
+class OperatingSystemListView(ListView):
+    model = models.OperatingSystem
+    template_name = "operating_system_list"
 
 class SystemRevision(CompareMixin, UpdateView):
     template_name = "systems/revision_confirm_restore.html"

@@ -2,7 +2,7 @@
 {% block content %}
     <form method="post">
     <table>
-    {{ form }}
+        <p>Are you sure you want to delete "{{ object }}"?</p>
     </table>
     <input type="button" onclick='window.history.back();' value="Cancel" />
     <input type="submit" name="submit" value="Save" />
