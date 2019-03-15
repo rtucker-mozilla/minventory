@@ -24,7 +24,12 @@ urlpatterns = [
         name="operatingsystem-list"
     ),
     url(
-        r'^operatingsystem/(?P<pk>\d+)[/]$',
+        r'^operatingsystem/delete/(?P<pk>\d+)[/]$',
+        views.OperatingSystemDeleteView.as_view(),
+        name="operatingsystem-delete"
+    ),
+    url(
+        r'^operatingsystem/edit/(?P<pk>\d+)[/]$',
         views.OperatingSystemEditView.as_view(),
         name="operatingsystem-edit"
     ),

@@ -15,6 +15,7 @@
             <td>{{ o.name }}</td>
             <td>{{ o.version }}</td>
             <td><a href="{% url "operatingsystem-edit" o.id %}">Edit</a></td>
+            <td><a href="{% url "operatingsystem-delete" o.id %}">Delete</a></td>
         </tr>
         {% endfor %}
 {% endblock %}

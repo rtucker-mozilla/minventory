@@ -10,7 +10,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import  redirect, get_object_or_404, render, render_to_response
 from django.template import RequestContext
 from django.template.loader import render_to_string
-from django.views.generic.edit import UpdateView
+from django.views.generic.edit import UpdateView, DeleteView
 from django.test.client import RequestFactory
 from django.views.generic.list import ListView
 from reversion.models import Version
@@ -837,6 +837,15 @@ def racks(request):
         'filter_form': filter_form,
         'read_only': getattr(request, 'read_only', False),
         }, RequestContext(request))
+
+
+class OperatingSystemDeleteView(DeleteView):
+    model = models.OperatingSystem
+    template_name = "generic_delete.html"
+    fields = '__all__'
+
+    def get_success_url(self):
+        return reverse("operatingsystem-list")
 
 
 class OperatingSystemEditView(UpdateView):
