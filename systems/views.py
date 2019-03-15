@@ -3,6 +3,7 @@ import re
 import simplejson as json
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 from django.db import IntegrityError
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
@@ -837,6 +838,14 @@ def racks(request):
         'read_only': getattr(request, 'read_only', False),
         }, RequestContext(request))
 
+
+class OperatingSystemEditView(UpdateView):
+    model = models.OperatingSystem
+    template_name = "systems/generic_form.html"
+    fields = '__all__'
+
+    def get_success_url(self):
+        return reverse("operatingsystem-list")
 
 
 class OperatingSystemListView(ListView):
