@@ -1,18 +1,18 @@
-from systems import models
-from rest_framework import status
+""" inventory api views and serializers """
+import datetime
+from rest_framework import status, viewsets, serializers
+from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
-from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter
 from dateutil.relativedelta import relativedelta
-from systems.models import System
 from django.http import Http404
+from systems.models import System
+from systems import models
 
-from rest_framework import serializers
-import datetime
 
 class WarrantyStartField(serializers.Field):
+    """ custom field for warranty start date that has the formatting we want """
     def to_representation(self, value):
         return "{}".format(value)
 
@@ -22,6 +22,7 @@ class WarrantyStartField(serializers.Field):
 
 
 class WarrantyEndField(serializers.Field):
+    """ custom field for warranty start date that has the formatting we want """
     def to_representation(self, value):
         return "{}".format(value)
 
@@ -31,6 +32,7 @@ class WarrantyEndField(serializers.Field):
 
 
 class ServerModelTypeField(serializers.Field):
+    """ custom field for that allows us to search by multiple types """
     def to_representation(self, value):
         return "{}-{}".format(value.vendor, value.model)
 
@@ -45,7 +47,7 @@ class ServerModelTypeField(serializers.Field):
             try:
                 vendor = str(data.split("-")[0]).strip()
                 model = str("-".join(data.split("-")[1:])).strip()
-                obj = models.ServerModel.objects.filter(vendor=vendor,model=model).first()
+                obj = models.ServerModel.objects.filter(vendor=vendor, model=model).first()
             except models.ServerModel.DoesNotExist:
                 obj = None
         if obj is None:
@@ -57,7 +59,7 @@ class ServerModelTypeField(serializers.Field):
                 obj = None
         if obj is None:
             tmp = data
-            obj = models.ServerModel.objects.create(vendor=tmp,model=tmp).save()
+            obj = models.ServerModel.objects.create(vendor=tmp, model=tmp).save()
         if not obj:
             raise serializers.ValidationError(
                 "Unable to find ServerModel {}".format(data),
@@ -65,7 +67,10 @@ class ServerModelTypeField(serializers.Field):
             )
         else:
             return obj
+
+
 class OperatingSystemTypeField(serializers.Field):
+    """ custom field for that allows us to search by multiple types """
     def to_representation(self, value):
         return "{}-{}".format(value.name, value.version)
 
@@ -91,6 +96,7 @@ class OperatingSystemTypeField(serializers.Field):
             return obj
 
 class SystemTypeField(serializers.Field):
+    """ custom field for that allows us to search by multiple types """
     def to_representation(self, value):
         return value.type_name
 
@@ -114,6 +120,7 @@ class SystemTypeField(serializers.Field):
             return obj
 
 class SystemStatusField(serializers.Field):
+    """ custom field for that allows us to search by multiple types """
     def to_representation(self, value):
         return value.status
 
@@ -136,7 +143,9 @@ class SystemStatusField(serializers.Field):
         else:
             return obj
 
+
 class AllocationField(serializers.Field):
+    """ custom field for that allows us to search by multiple types """
     def to_representation(self, value):
         return value.name
 
@@ -160,6 +169,7 @@ class AllocationField(serializers.Field):
             return obj
 
 class SystemRackField(serializers.Field):
+    """ custom field for that allows us to search by multiple types """
     def to_representation(self, value):
         return value.name
 
@@ -182,7 +192,9 @@ class SystemRackField(serializers.Field):
         else:
             return obj
 
+
 class SiteField(serializers.Field):
+    """ custom field for that allows us to search by multiple types """
     def to_representation(self, value):
         return value.name
 
@@ -194,36 +206,47 @@ class SiteField(serializers.Field):
             return models.Site.objects.get(name=data)
 
 
-
-
 class PatchModelSerializer(serializers.ModelSerializer):
+    """ simple override here for init to allow patch/partial """
     def __init__(self, *args, **kwargs):
         kwargs['partial'] = True
         super(PatchModelSerializer, self).__init__(*args, **kwargs)
 
 
 class SystemStatusSerializer(serializers.ModelSerializer):
+    """ DRF serializer for SystemStatus """
     class Meta:
+        """ class Meta """
         model = models.SystemStatus
         fields = '__all__'
 
+
 class OperatingSystemSerializer(serializers.ModelSerializer):
+    """ DRF serializer for OperatingSystem """
     class Meta:
+        """ class Meta """
         model = models.OperatingSystem
         fields = '__all__'
 
+
 class SystemTypeSerializer(serializers.ModelSerializer):
+    """ DRF serializer for SystemType """
     class Meta:
+        """ class Meta """
         model = models.SystemType
         fields = '__all__'
 
 
 class ServerModelSerializer(serializers.ModelSerializer):
+    """ DRF serializer for ServerModel """
     class Meta:
+        """ class Meta """
         model = models.ServerModel
         fields = '__all__'
 
+
 class SystemSerializer(serializers.ModelSerializer):
+    """ DRF serializer for System """
     system_rack = SystemRackField(required=False)
     system_status = SystemStatusField()
     system_type = SystemTypeField()
@@ -233,56 +256,63 @@ class SystemSerializer(serializers.ModelSerializer):
     warranty_end = WarrantyEndField(required=False)
     # server_model = serializers.StringRelatedField(many=False)
 
-    def validate(self, data):
+    def validate(self, attrs):
 
-        if 'warranty_start' not in data or data['warranty_start'] == None:
-            data['warranty_start'] = datetime.date.today()
-            data['warranty_end'] = datetime.date.today() + relativedelta(
+        if 'warranty_start' not in attrs or attrs['warranty_start'] is None:
+            attrs['warranty_start'] = datetime.date.today()
+            attrs['warranty_end'] = datetime.date.today() + relativedelta(
                 years=+1)
 
 
-        if 'serial' not in data or data['serial'] == '':
-            if data['server_model'].model != u'VMware Virtual Platform':
+        if 'serial' not in attrs or attrs['serial'] == '':
+            if attrs['server_model'].model != u'VMware Virtual Platform':
                 pass
                 #raise serializers.ValidationError("Serial Required", code=400)
 
         if self.context['request'].method != 'PATCH':
-            if System.objects.filter(hostname=data['hostname']):
+            if System.objects.filter(hostname=attrs['hostname']):
                 raise serializers.ValidationError(
                     "Hostname already used", code=400
                 )
-        return data
+        return attrs
 
     class Meta:
+        """ class Meta """
         model = models.System
         fields = '__all__'
 
 class SystemRackSerializer(serializers.ModelSerializer):
+    """ DRF serializer for SystemRack """
     location = serializers.SerializerMethodField()
     site_name = serializers.SerializerMethodField()
     systems = serializers.SerializerMethodField()
     site = SiteField()
     class Meta:
+        """ class Meta """
         model = models.SystemRack
         fields = '__all__'
 
     def get_systems(self, value):
+        """
+            method function to include ordering.
+        """
 
         serializer = SystemSerializer(value.systems().order_by("-rack_order"), many=True)
         return serializer.data
 
     def get_location(self, value):
+        """ return location or nothing """
         try:
             return value.location.name
         except AttributeError:
             return ""
 
     def get_site_name(self, value):
+        """ return site name or  nothing """
         try:
             return value.site.name
         except AttributeError:
             return ""
-
 
 
 class MultipleFieldLookupMixin(object):
@@ -293,13 +323,14 @@ class MultipleFieldLookupMixin(object):
     """
 
     def get_object(self):
+        """ allow multiple field values to be used for looking up object """
         # queryset = self.filter_queryset(queryset)
         for field in self.lookup_fields:
-            filter = {}
+            a_filter = {}
             try:
-                    filter[field] = self.kwargs['pk']
-                    return self.queryset.filter(**filter).first()
-            except Exception:
+                a_filter[field] = self.kwargs['pk']
+                return self.queryset.filter(**a_filter).first()
+            except (IndexError, AttributeError, TypeError):
                 continue
 
         # return get_object_or_404(queryset, **filter)  # Lookup the object
@@ -307,6 +338,7 @@ class MultipleFieldLookupMixin(object):
 
 
 class SystemTypeViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
+    """ Default DRF viewset for SystemType """
     queryset = models.SystemType.objects.all()
     serializer_class = SystemTypeSerializer
     permission_classes = [IsAuthenticated]
@@ -316,8 +348,7 @@ class SystemTypeViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
 
 
 class SystemRackViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
-
-
+    """ Default DRF viewset for SystemRack """
     queryset = models.SystemRack.objects.all()
     serializer_class = SystemRackSerializer
     permission_classes = [IsAuthenticated]
@@ -340,6 +371,7 @@ class SystemRackViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
         )
 
 class ServerModelViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
+    """ DRF viewset for ServerModle object """
     queryset = models.ServerModel.objects.all()
     serializer_class = ServerModelSerializer
     permission_classes = [IsAuthenticated]
@@ -352,6 +384,7 @@ class ServerModelViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
         return queryset.order_by('id')
 
 class SystemStatusViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
+    """ DRF viewset for SystemStatus object """
     queryset = models.SystemStatus.objects.all()
     serializer_class = SystemStatusSerializer
     permission_classes = [IsAuthenticated]
@@ -362,6 +395,7 @@ class SystemStatusViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
 
 
 class OperatingSystemViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
+    """ DRF viewset for OperatingSystem """
     queryset = models.OperatingSystem.objects.all()
     serializer_class = OperatingSystemSerializer
     permission_classes = [IsAuthenticated]
@@ -389,7 +423,6 @@ class SystemViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
             partial=partial
         )
         if not serializer.is_valid():
-            import pdb; pdb.set_trace()
             for error in serializer.errors:
                 error_title = serializer.errors[error][0].title()
                 error_resp = {'non_field_errors': [error_title]}

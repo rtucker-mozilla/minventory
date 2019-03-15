@@ -66,7 +66,7 @@ $(document).ready(function () {
                                         '<label>Vendor:</label> <input type="text" name="js_server_model_vendor" id="js_server_model_vendor" /> <br />' + 
                                         '<label>Model:</label> <input type="text" name="js_server_model_model" id="js_server_model_model" /> <br />' + 
                                         '<a id="server_model_create_button" class="create" >Create</a>&nbsp;<a class="cancel" href="">Cancel</a>' + 
-                                        '</div>');
+                  '</div><br /><br /><br /><br />');
 
                 form.find('a.cancel').click(function() {
                     $('#server_model_formline').replaceWith(old_content); 
@@ -88,8 +88,6 @@ $(document).ready(function () {
                                 'model': server_model,
                                 'vendor': server_vendor
                             },
-                            contentType: "application/json; charset=utf-8", 
-                            dataType: "json", 
                             beforeSend: function(){ 
                                 $('#server_model_formline').replaceWith(old_content); 
                                 $("#id_server_model").get(0).options.length = 0; 
@@ -98,9 +96,11 @@ $(document).ready(function () {
                             success: function(msg) { 
                                 $("#server_model_sub_form").hide();
                                 $("#id_server_model option[value='-1']").remove();
-                                $.each(msg, function(index, item) { 
-                                    $("#id_server_model").get(0).options[$("#id_server_model").get(0).options.length] = new Option(item.name, item.id);
-                                }); 
+                                var $dropdown = $("#id_server_model");
+                                JSON.parse(msg).forEach(function(item){
+                                  $dropdown.append($("<option />").val(item.id).text(item.name));
+                                });
+
                             }, 
                             error: function() { 
                                 alert("Failed to load server models"); 
@@ -148,8 +148,6 @@ $(document).ready(function () {
                                 'name': name,
                                 'version': version
                             },
-                            contentType: "application/json; charset=utf-8", 
-                            dataType: "json", 
                             beforeSend: function(){ 
                                 $('#os_formline').replaceWith(old_content); 
                                 $("#id_operating_system").get(0).options.length = 0; 
@@ -158,9 +156,10 @@ $(document).ready(function () {
                             success: function(msg) { 
                                 $("#operating_system_sub_form").hide();
                                 $("#id_operating_system option[value='-1']").remove();
-                                $.each(msg, function(index, item) { 
-                                    $("#id_operating_system").get(0).options[$("#id_operating_system").get(0).options.length] = new Option(item.name, item.id);
-                                }); 
+                                var $dropdown = $("#id_operating_system");
+                                JSON.parse(msg).forEach(function(item){
+                                  $dropdown.append($("<option />").val(item.id).text(item.name));
+                                });
                             }, 
                             error: function() { 
                                 alert("Failed to load Operating Systems"); 

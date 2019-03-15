@@ -1,3 +1,4 @@
+from datetime import datetime
 from django import forms
 from django.forms.widgets import SelectDateWidget
 try:
@@ -6,25 +7,23 @@ except ImportError:
     from django.utils.functional import wraps  # Python 2.3, 2.4 fallback.
 
 from systems import models
-from datetime import datetime
 
 from systems.constants import VALID_SYSTEM_SUFFIXES
 # from core.site.models import Site
 from .models import Site
 
-import re
 
 
 
 def has_changed(instance, field):
-    old_value = instance.__class__._default_manager.\
-            filter(pk=instance.pk).values(field).get()[field]
+    # Im not sure if anything uses this with django_reversion being installed
+    old_value = instance.__class__._default_manager.filter(pk=instance.pk).values(field).get()[field] # pylint: disable=protected-access,line-too-long
     return not getattr(instance, field) == old_value
 
 class SystemRackForm(forms.ModelForm):
     class Meta:
         model = models.SystemRack
-        exclude = ('location',)
+        exclude = ('location',) # pylint: disable=modelform-uses-exclude
 
 class ServerModelForm(forms.ModelForm):
     class Meta:
@@ -33,16 +32,20 @@ class ServerModelForm(forms.ModelForm):
 
 class RackFilterForm(forms.Form):
 
+    site_choices = [('', 'ALL')]
+    site_choices += [
+        (m.id, m) for m in Site.objects.all()
+    ]
+    status_choices = [('', 'ALL')]
+    status_choices += [(m.id, m) for m in models.SystemStatus.objects.all()]
+
     site = forms.ChoiceField(
         required=False,
-        choices=[('', 'ALL')] + [
-            (m.id, m) for m in Site.objects.all()
-        ]
+        choices=site_choices
     )
     status = forms.ChoiceField(
         required=False,
-        choices=[('', 'ALL')] +
-            [(m.id, m) for m in models.SystemStatus.objects.all()]
+        choices=status_choices
     )
     rack = forms.ChoiceField(
         required=False,
@@ -56,8 +59,10 @@ class RackFilterForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(RackFilterForm, self).__init__(*args, **kwargs)
-        self.fields['site'].choices = [('', 'ALL')] + [(m.id, m.full_name) for m in Site.objects.all()]
-        self.fields['status'].choices = [('', 'ALL')] + [(m.id, m) for m in models.SystemStatus.objects.all()]
+        self.fields['site'].choices = [('', 'ALL')]\
+             + [(m.id, m.full_name) for m in Site.objects.all()]
+        self.fields['status'].choices = [('', 'ALL')]\
+             + [(m.id, m) for m in models.SystemStatus.objects.all()]
         self.fields['rack'].choices = [('', 'ALL')] + [
             (m.id, '{0} - {1}'.format(m.site.full_name, m.name) if m.site else '' + ' ' +  m.name)
             for m in models.SystemRack.objects.all().order_by('site', 'name')
@@ -156,7 +161,7 @@ class SystemForm(forms.ModelForm):
         name = self.data.get('js_os_name')
         version = self.data.get('js_os_version')
         if name is not None and version is not None:
-            os, c = models.OperatingSystem.objects.get_or_create(
+            os = models.OperatingSystem.objects.get_or_create(
                 name=name,
                 version=version)
             return os
@@ -168,7 +173,7 @@ class SystemForm(forms.ModelForm):
         vendor = self.data.get('js_server_model_vendor')
         model = self.data.get('js_server_model_model')
         if vendor is not None and model is not None:
-            server_model, c = models.ServerModel.objects.get_or_create(
+            server_model = models.ServerModel.objects.get_or_create(
                 vendor=vendor,
                 model=model)
             return server_model
@@ -181,7 +186,7 @@ class SystemForm(forms.ModelForm):
         color_status = self.data.get('js_status_color')
         code_color_status = self.data.get('js_status_code')
         if name_status is not None and code_color_status is not None and color_status is not None:
-            status_model, c = models.SystemStatus.objects.get_or_create(
+            status_model = models.SystemStatus.objects.get_or_create(
                 status=name_status,
                 color=color_status,
                 color_code=code_color_status,

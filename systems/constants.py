@@ -1,4 +1,4 @@
-VALID_SYSTEM_SUFFIXES =  [
+VALID_SYSTEM_SUFFIXES = [
     'mozilla.com',
     'mozilla.net',
     'mozilla.org',

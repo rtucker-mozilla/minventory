@@ -1,3 +1,11 @@
+""" systems model """
+import datetime
+import re
+import socket
+import math
+import string
+import reversion
+from reversion.signals import post_revision_commit
 from django.db import models
 from django.db.models import Q
 from django.core.exceptions import ValidationError
@@ -6,36 +14,30 @@ from django.db.models.query import QuerySet
 from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.urls import reverse
-import reversion
-
 from settings import BUG_URL
 
 
-import datetime
-import re
-import socket
-import math
-import string
-
-from django.db import models
-from django.db.models import Q
-from django.core.exceptions import ValidationError
-
 class Refresher(object):
-    # Mixin class. Make sure the mixer class is django ORM based class
+    """ Mixin class. Make sure the mixer class is django ORM based class """
     def refresh(self):
+        """
+            refresh function which is probably useless in django 2.1
+            @TODO: figure out if this does anything in modern django
+        """
+
         return self.__class__.objects.get(pk=self.pk)
 
-def create_key_index(kvs):
+
+def create_key_index(key_values):
+    """ return list of dict with key/value pairs """
     index = {}
-    for kv in kvs:
-        index[kv['key']] = kv
+    for key_value in key_values:
+        index[key_value['key']] = key_value
     return index
 
 
-
 class BaseKeyValue(models.Model):
-    """How this KeyValue class works:
+    """ How this KeyValue class works:
         The KeyValue objects have functions that correspond to different
         keys. When a key is saved an attempt is made to find a validation
         function for that key.
@@ -72,6 +74,7 @@ class BaseKeyValue(models.Model):
     force_validation = False
 
     class Meta:
+        """ class Meta """
         abstract = True
 
     def __repr__(self):
@@ -82,22 +85,26 @@ class BaseKeyValue(models.Model):
 
     @property
     def uri(self):
+        """ returns link to update """
         return '/en-US/core/keyvalue/api/{0}/{1}/update/'.format(
             self.__class__.__name__.lower(), self.pk
         )
 
     def get_absolute_url(self):
+        """ returns absolute_url """
         return '/en-US/core/keyvalue/{0}/{1}/'.format(
             self.__class__.__name__.lower(), self.obj.pk
         )
 
     def get_bundle(self):
+        """ returns bundle of key/value """
         return {
             'key': self.key, 'value': self.value, 'uri': self.uri,
             'kv_pk': self.pk, 'obj_pk': self.obj.pk
         }
 
-    def clean(self, require_validation=True, check_unique=True):
+    def clean(self, require_validation=True, check_unique=True):  # pylint: disable=arguments-differ
+        """ run clean """
         key_attr = self.key.replace('-', '_')
         # aa stands for auxilarary attribute.
         if (not hasattr(self, key_attr) and
@@ -119,14 +126,14 @@ class BaseKeyValue(models.Model):
                                   key_attr)
         try:
             validate()
-        except (TypeError, e):
+        except TypeError as exc:
             # We want to catch when the validator didn't accept the correct
             # number of arguements.
-            raise ValidationError("%s" % str(e))
+            raise ValidationError("%s" % str(exc))
         if check_unique:
             self.validate_unique()
 
-    def validate_unique(self):
+    def validate_unique(self): # pylint: disable=arguments-differ
         if (self.__class__.objects.filter(
                 key=self.key, value=self.value, obj=self.obj).
                 filter(~Q(id=self.pk)).exists()):
@@ -142,10 +149,6 @@ def validate_mac(mac):
     :returns: The valid mac address.
     :raises: ValidationError
     """
-    if not is_mac.match(mac):
-        raise ValidationError(
-            "Mac Address {0} is not in valid format".format(mac)
-        )
     return mac
 
 def validate_label(label, valid_chars=None):
@@ -185,10 +188,10 @@ def validate_label(label, valid_chars=None):
     end_chars = string.ascii_letters + "0123456789"
 
     if (
-        label and
-        not label.endswith(tuple(end_chars)) or
-        # SRV records can start with '_'
-        not label.startswith(tuple(end_chars + '_'))
+            label and
+            not label.endswith(tuple(end_chars)) or
+            # SRV records can start with '_'
+            not label.startswith(tuple(end_chars + '_'))
     ):
         raise ValidationError(
             "Labels must end and begin only with a letter or digit"
@@ -197,7 +200,7 @@ def validate_label(label, valid_chars=None):
     return
 
 def _name_type_check(name):
-    if type(name) not in (str,):
+    if not isinstance(name, str):
         raise ValidationError("Error: A name must be of type str.")
 
 def validate_name(fqdn):
@@ -234,7 +237,6 @@ def validate_name(fqdn):
 
             --`RFC 1034 <http://www.ietf.org/rfc/rfc1034.txt>`__
     """
-    # TODO, make sure the grammar is followed.
     _name_type_check(fqdn)
 
     # Star records are allowed. Remove them during validation.
@@ -250,19 +252,21 @@ def validate_name(fqdn):
 
 
 class QuerySetManager(models.Manager):
+    """ manager """
     def get_query_set(self):
+        """ return the default queryset """
         return self.model.QuerySet(self.model)
 
-    # def __getattr__(self, attr, *args):
-    #     return getattr(self.get_query_set(), attr, *args)
 
 def to_a(text, obj, use_absolute_url=True):
+    """ convert to string """
     if use_absolute_url:
         return "<a href='{0}'>{1}</a>".format(obj.get_absolute_url(), text)
     else:
         return "<a href='{0}'>{1}</a>".format(obj, text)
 
 class DirtyFieldsMixin(object):
+    """ mixin to detect fields that are dirty """
     def __init__(self, *args, **kwargs):
         super(DirtyFieldsMixin, self).__init__(*args, **kwargs)
         post_save.connect(
@@ -272,7 +276,7 @@ class DirtyFieldsMixin(object):
         )
         self._reset_state()
 
-    def _reset_state(self, *args, **kwargs):
+    def _reset_state(self, **kwargs): # pylint: disable=unused-argument
         self._original_state = self._as_dict()
 
     def _as_dict(self):
@@ -351,7 +355,7 @@ class Site(models.Model):
     def rdtype(self):
         return 'SITE'
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs): # pylint: disable=arguments-differ
         self.name = self.full_name.split('.')[0]
         self.full_clean()
         super(Site, self).save(*args, **kwargs)
@@ -369,14 +373,14 @@ class Site(models.Model):
                     "This site has child sites. You cannot change it's name "
                     "without affecting all child sites."
                 )
-        if not self.full_name.find('.') == -1:
+        if self.full_name.find('.') != -1:
             self.parent, _ = self.__class__.objects.get_or_create(
                 full_name='.'.join(parent_name)
             )
         else:
             self.parent = None
 
-    def delete(self, *args, **kwargs):
+    def delete(self, *args, **kwargs): # pylint: disable=arguments-differ
         if self.site_set.all().exists():
             raise ValidationError(
                 "This site has child sites. You cannot delete it."
@@ -412,14 +416,8 @@ class Site(models.Model):
     def get_systems(self):
         """Get all systems associated to racks in this site"""
         if not self.systems:
-            from systems.models import System
             self.systems = System.objects.all()
         return self.systems.filter(system_rack__in=self.systemrack_set.all())
-
-    def get_allocated_networks(self):
-        """Return a list of all top level networks assocaited with this site"""
-        from core.network.utils import calc_top_level_networks
-        return calc_top_level_networks(self)
 
 class ScheduledTask(models.Model):
     task = models.CharField(max_length=255, blank=False, unique=True)
@@ -442,20 +440,20 @@ class ScheduledTask(models.Model):
         def get_all_reverse_dns(self):
             return self.filter(type='reverse_dns_zone')
 
-        def get_next_task(self, type=None):
-            if type is not None:
+        def get_next_task(self, atype=None):
+            if atype is not None:
                 try:
-                    return self.filter(type=type)[0]
-                except:
+                    return self.filter(type=atype)[0]
+                except: # pylint: disable=bare-except
                     return None
             else:
                 return None
 
-        def get_last_task(self, type=None):
-            if type is not None:
+        def get_last_task(self, atype=None):
+            if atype is not None:
                 try:
-                    return self.filter(type=type)[-1]
-                except:
+                    return self.filter(type=atype)[-1]
+                except:  # pylint: disable=bare-except
                     return None
             else:
                 return None
@@ -488,7 +486,7 @@ class Location(models.Model):
         db_table = u'locations'
         ordering = ['name']
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def get_absolute_url(self):
@@ -506,7 +504,7 @@ class PortData(models.Model):
     service = models.CharField(max_length=64, blank=True)
     version = models.CharField(max_length=128, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.ip_address
 
     class Meta:
@@ -523,7 +521,7 @@ class AdvisoryData(models.Model):
     class Meta:
         db_table = u'advisory_data'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.ip_address
 
 
@@ -541,14 +539,14 @@ class KeyValue(BaseKeyValue):
     class Meta:
         db_table = u'key_value'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.key if self.key else ''
 
     def __repr__(self):
         return "<{0}: '{1}'>".format(self.key, self.value)
 
-    def save(self, *args, **kwargs):
-        if re.match('^nic\.\d+\.mac_address\.\d+$', self.key):
+    def save(self, *args, **kwargs): # pylint: disable=arguments-differ
+        if re.match(r'^nic\.\d+\.mac_address\.\d+$', self.key):
             self.value = self.value.replace('-', ':')
             self.value = validate_mac(self.value)
         if self.key is None:
@@ -573,7 +571,7 @@ class NetworkAdapter(models.Model):
     class Meta:
         db_table = u'network_adapters'
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs): # pylint: disable=arguments-differ
         self.full_clean()  # Calls field.clean() on all fields.
         super(NetworkAdapter, self).save(*args, **kwargs)
 
@@ -603,11 +601,7 @@ class OperatingSystem(models.Model):
         db_table = u'operating_systems'
         ordering = ['name', 'version']
 
-
     def __str__(self):
-        return "%s - %s" % (self.name, self.version)
-
-    def __unicode__(self):
         return "%s - %s" % (self.name, self.version)
 
     @classmethod
@@ -627,8 +621,6 @@ class ServerModel(models.Model):
         ordering = ['vendor', 'model']
 
     def __str__(self):
-        return u"%s - %s" % (self.vendor, self.model)
-    def __unicode__(self):
         return u"%s - %s" % (self.vendor, self.model)
 
     @classmethod
@@ -655,9 +647,6 @@ class SystemRack(models.Model):
             self.name
         )
 
-    def __unicode__(self):
-        return str(self)
-
     @classmethod
     def get_api_fields(cls):
         return ('name', 'location', 'site')
@@ -668,7 +657,7 @@ class SystemRack(models.Model):
     def get_edit_url(self):
         return '/en-US/systems/racks/edit/{0}/'.format(self.pk)
 
-    def delete(self, *args, **kwargs):
+    def delete(self, *args, **kwargs): # pylint: disable=arguments-differ
         self.system_set.clear()
         super(SystemRack, self).delete(*args, **kwargs)
 
@@ -684,9 +673,6 @@ class SystemType(models.Model):
         db_table = u'system_types'
 
     def __str__(self):
-        return self.type_name
-
-    def __unicode__(self):
         return self.type_name
 
     @classmethod
@@ -707,14 +693,19 @@ class SystemStatus(models.Model):
     def __str__(self):
         return self.status
 
-    def __unicode__(self):
-        return self.status
-
     @classmethod
     def get_api_fields(cls):
         return ('status',)
 
-@reversion.register(follow=["system_type","operating_system","system_status","server_model","system_rack"])
+@reversion.register(follow= # pylint: disable=function-redefined
+                    [
+                        "system_type",
+                        "operating_system",
+                        "system_status",
+                        "server_model",
+                        "system_rack"
+                    ]
+                    )
 class System(Refresher, DirtyFieldsMixin, models.Model):
 
     YES_NO_CHOICES = (
@@ -726,7 +717,12 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
     operating_system = models.ForeignKey(
         'OperatingSystem', blank=True, null=True, on_delete=models.CASCADE)
     system_type = models.ForeignKey('SystemType', blank=True, null=True, on_delete=models.CASCADE)
-    system_status = models.ForeignKey('SystemStatus', blank=True, null=True, on_delete=models.CASCADE)
+    system_status = models.ForeignKey(
+        'SystemStatus',
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE
+    )
     server_model = models.ForeignKey('ServerModel', blank=True, null=True, on_delete=models.CASCADE)
     system_rack = models.ForeignKey('SystemRack', blank=True, null=True, on_delete=models.CASCADE)
 
@@ -792,14 +788,14 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
             first_ip = self.keyvalue_set.filter(
                 key__contains='ipv4_address').order_by('key')[0].value
             return first_ip
-        except:
+        except: # pylint: disable=bare-except
             return None
 
     @property
     def primary_reverse(self):
         try:
             return str(socket.gethostbyaddr(self.primary_ip)[0])
-        except:
+        except: # pylint: disable=bare-except
             return None
 
     @property
@@ -807,7 +803,7 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
         if not self.notes:
             return ''
         notes = self.notes
-        pattern = '([bB]ug#?\D#?(\d+))'
+        pattern = r'([bB]ug#?\D#?(\d+))'
         matches = re.findall(pattern, notes)
         for raw_text, bug_number in matches:
             bug_url = '<a href="{0}{1}">{2}</a>'.format(
@@ -864,9 +860,9 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
             j = i
 
             while (
-                (j + 1) < len(systems) and
-                systems[j + 1].rack_order is not None and
-                math.floor(systems[j + 1].rack_order) == cur_integer
+                    (j + 1) < len(systems) and
+                    systems[j + 1].rack_order is not None and
+                    math.floor(systems[j + 1].rack_order) == cur_integer
             ):
                 j += 1
 
@@ -937,7 +933,7 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
     def rdtype(self):
         return 'SYS'
 
-    def bind_render_record(self, **kwargs):
+    def bind_render_record(self, **kwargs): # pylint: disable=unused-argument
         data = {
             'oob_ip_str': self.oob_ip or 'None',
             'asset_tag_str': self.asset_tag or 'None',
@@ -945,15 +941,16 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
         }
         return super(System, self).bind_render_record(**data)
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs): # pylint: disable=arguments-differ
         #self.save_history(kwargs)
         self.full_clean()
         with reversion.create_revision():
             request = kwargs.pop('request', None)
             if request:
                 try:
-                    reversion.set_user(request.user)
-                except AttributeError:
+                    if not request.user.is_anonymous:
+                        reversion.set_user(request.user)
+                except (ValueError, AttributeError):
                     # No user set
                     pass
             super(System, self).save(*args, **kwargs)
@@ -974,14 +971,17 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
             )
 
     def is_vm(self):
-        return False
-        if not self.system_type:
-            return False
+        """ this might have had value before but probably not anymore
+                if not self.system_type:
+                    return False
 
-        return (
-            False if self.system_type.type_name.find('Virtual Server') == -1
-            else True
-        )
+                return (
+                    False if self.system_type.type_name.find('Virtual Server') == -1
+                    else True
+                )
+        """
+        return False
+
 
     def validate_system_type(self):
         if not self.system_type:
@@ -1039,7 +1039,7 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
                     save_string += '%s: %s\n\n' % (k, v)
                 try:
                     remote_user = request.META['REMOTE_USER']
-                except Exception:
+                except Exception: #pylint: disable=broad-except
                     remote_user = 'changed_user'
                 tmp = SystemChangeLog(
                     system=system,
@@ -1048,7 +1048,7 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
                     changed_date=datetime.datetime.now()
                 )
                 tmp.save()
-        except Exception:
+        except Exception: #pylint: disable=broad-except
             pass
 
         if not self.pk:
@@ -1077,13 +1077,13 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
         ret['name'] = 'nic0'
         key_value = self.keyvalue_set.filter(
             key__startswith='nic', key__icontains='mac_address')[0]
-        m = re.search('nic\.(\d+)\.mac_address\.0', key_value.key)
+        m = re.search(r'nic\.(\d+)\.mac_address\.0', key_value.key)
         ret['num'] = int(m.group(1))
         key_value_set = self.keyvalue_set.filter(
             key__startswith='nic.%s' % ret['num'])
-        if len(key_value_set) > 0:
+        if not key_value_set:
             for kv in key_value_set:
-                m = re.search('nic\.\d+\.(.*)\.0', kv.key)
+                m = re.search(r'nic\.\d+\.(.*)\.0', kv.key)
                 if m:
                     ret[m.group(1)] = str(kv.value)
             return ret
@@ -1146,7 +1146,7 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
                         if fqdn:
                             self.update_host_for_migration(fqdn[0])
                             updated = True
-                    except Exception:
+                    except Exception: #pylint: disable=broad-except
                         pass
             if not updated:
                 pass
@@ -1161,8 +1161,8 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
             try:
                 self.hostname = new_hostname
                 self.save()
-            except (Exception, e):
-                print("ERROR - {}".format(e))
+            except Exception as exc: #pylint: disable=broad-except
+                print("ERROR - {}".format(exc))
 
     def get_switches(self):
         return System.objects.filter(is_switch=1)
@@ -1185,7 +1185,7 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
             obj=self, key__startswith='nic', key__contains='adapter_name'
         )
         for row in pairs:
-            m = re.match('^nic\.\d+\.adapter_name\.\d+', row.key)
+            m = re.match(r'^nic\.\d+\.adapter_name\.\d+', row.key)
             if m:
                 adapter_names.append(str(row.value))
         return adapter_names
@@ -1194,7 +1194,7 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
         nic_numbers = []
         pairs = KeyValue.objects.filter(obj=self, key__startswith='nic')
         for row in pairs:
-            m = re.match('^nic\.(\d+)\.', row.key)
+            m = re.match(r'^nic\.(\d+)\.', row.key)
             if m:
                 match = int(m.group(1))
                 if match not in nic_numbers:
@@ -1281,13 +1281,12 @@ class UserProfile(models.Model):
         def get_current_metrics_oncall(self):
             self.filter(current_metrics_oncall=1).select_related()
 
-from reversion.signals import post_revision_commit
 @receiver(post_revision_commit)
-def on_revision_commit(sender, **kwargs):
+def on_revision_commit(sender, **kwargs): # pylint: disable=unused-argument
     revision = kwargs['revision']
     try:
-        system =  System.objects.get(pk=kwargs['versions'][0].object.id)
+        system = System.objects.get(pk=kwargs['versions'][0].object.id)
         system.current_revision = revision.version_set.all().last().id
         system.save()
-    except:
+    except: # pylint: disable=bare-except
         return
