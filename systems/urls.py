@@ -18,6 +18,7 @@ urlpatterns = [
     url(r'^show/a(?P<a_id>\d+)[/]$', views.system_show_by_asset_tag),
     url(r'^edit/(?P<a_id>\d+)[/]$', views.system_edit, name="system-edit"),
     url(r'^revision/(?P<pk>\d+)[/]$', views.SystemRevision.as_view()),
+    url(r'^operatingsystems[/]$', views.OperatingSystemListView.as_view()),
     url(r'^delete/(\d+)[/]$', views.system_delete),
     url(
         r'^ajax_check_dupe_nic/(?P<system_id>\d+)/(?P<adapter_number>\d+)[/]$',

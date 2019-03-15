@@ -11,6 +11,7 @@ from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.views.generic.edit import UpdateView
 from django.test.client import RequestFactory
+from django.views.generic.list import ListView
 from reversion.models import Version
 from reversion_compare.mixins import CompareMixin
 from middleware.restrict_to_remote import allow_anyone
@@ -837,6 +838,10 @@ def racks(request):
         }, RequestContext(request))
 
 
+
+class OperatingSystemListView(ListView):
+    model = models.OperatingSystem
+    template_name = "operating_system_list"
 
 class SystemRevision(CompareMixin, UpdateView):
     template_name = "systems/revision_confirm_restore.html"
