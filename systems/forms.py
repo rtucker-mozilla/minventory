@@ -108,6 +108,8 @@ class SystemForm(forms.ModelForm):
                   'serial',
                   'switch_ports',
                   'patch_panel_port',
+                  'pdu1',
+                  'pdu2',
                   'oob_ip',
                   'oob_switch_port',
                   'system_status',
@@ -129,6 +131,8 @@ class SystemForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(SystemForm, self).__init__(*args, **kwargs)
         self.fields['hostname'].widget.attrs['style'] = 'width: 400px;'
+        self.fields['pdu1'].widget.attrs['style'] = 'width: 400px;'
+        self.fields['pdu2'].widget.attrs['style'] = 'width: 400px;'
 
     def clean_hostname(self):
         """

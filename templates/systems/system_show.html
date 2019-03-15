@@ -51,6 +51,19 @@
 <dt>Patch Panel Port:</dd>
 <dd>{{ system.patch_panel_port }}</dd>
 <div style="clear:both;"></div>
+
+{% if system.pdu1 %}
+<dt>PDU1:</dt>
+<dd>{{ system.pdu1 }}</dd>
+<div style="clear:both;"></div>
+{% endif %}
+
+{% if system.pdu2 %}
+<dt>PDU2:</dt>
+<dd>{{ system.pdu2 }}</dd>
+<div style="clear:both;"></div>
+{% endif %}
+
 <dt>OOB Ip:</dt>
 <dd>{{ system.oob_ip }}</dd>
 <div style="clear:both;"></div>
