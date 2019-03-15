@@ -148,8 +148,6 @@ $(document).ready(function () {
                                 'name': name,
                                 'version': version
                             },
-                            contentType: "application/json; charset=utf-8", 
-                            dataType: "json", 
                             beforeSend: function(){ 
                                 $('#os_formline').replaceWith(old_content); 
                                 $("#id_operating_system").get(0).options.length = 0; 
