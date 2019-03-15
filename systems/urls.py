@@ -29,6 +29,11 @@ urlpatterns = [
         name="operatingsystem-delete"
     ),
     url(
+        r'^operatingsystem/create[/]$',
+        views.OperatingSystemCreateView.as_view(),
+        name="operatingsystem-new"
+    ),
+    url(
         r'^operatingsystem/edit/(?P<pk>\d+)[/]$',
         views.OperatingSystemEditView.as_view(),
         name="operatingsystem-edit"

@@ -10,7 +10,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import  redirect, get_object_or_404, render, render_to_response
 from django.template import RequestContext
 from django.template.loader import render_to_string
-from django.views.generic.edit import UpdateView, DeleteView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.test.client import RequestFactory
 from django.views.generic.list import ListView
 from reversion.models import Version
@@ -847,6 +847,14 @@ class OperatingSystemDeleteView(DeleteView):
     def get_success_url(self):
         return reverse("operatingsystem-list")
 
+
+class OperatingSystemCreateView(CreateView):
+    model = models.OperatingSystem
+    template_name = "systems/generic_form.html"
+    fields = '__all__'
+
+    def get_success_url(self):
+        return reverse("operatingsystem-list")
 
 class OperatingSystemEditView(UpdateView):
     model = models.OperatingSystem

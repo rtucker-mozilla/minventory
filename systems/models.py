@@ -715,7 +715,7 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
 
     # Related Objects
     operating_system = models.ForeignKey(
-        'OperatingSystem', blank=True, null=True, on_delete=models.CASCADE)
+        'OperatingSystem', blank=True, null=True, on_delete=models.SET_NULL)
     system_type = models.ForeignKey('SystemType', blank=True, null=True, on_delete=models.CASCADE)
     system_status = models.ForeignKey(
         'SystemStatus',
