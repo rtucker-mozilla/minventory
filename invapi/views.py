@@ -330,7 +330,7 @@ class MultipleFieldLookupMixin(object):
             try:
                 a_filter[field] = self.kwargs['pk']
                 return self.queryset.filter(**a_filter).first()
-            except (IndexError, AttributeError, TypeError):
+            except (ValueError, IndexError, AttributeError, TypeError):
                 continue
 
         # return get_object_or_404(queryset, **filter)  # Lookup the object
@@ -417,9 +417,13 @@ class SystemViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
+        data = request.data
+        append_notes = request.data.pop('append_notes', None)
+        if append_notes:
+            data['notes'] = "{}\n{}".format(instance.notes, append_notes)
         serializer = self.get_serializer(
             instance,
-            data=request.data,
+            data=data,
             partial=partial
         )
         if not serializer.is_valid():
@@ -427,6 +431,7 @@ class SystemViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
                 error_title = serializer.errors[error][0].title()
                 error_resp = {'non_field_errors': [error_title]}
                 raise serializers.ValidationError(error_resp)
+
         serializer.save(request=request)
         headers = self.get_success_headers(serializer.data)
         return Response(
