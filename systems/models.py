@@ -963,7 +963,7 @@ class System(Refresher, DirtyFieldsMixin, models.Model):
 
         if not self.is_vm():
             pass
-            # Removing warranty validation 
+            # Removing warranty validation
             #self.validate_warranty()
             #self.validate_serial()
 
