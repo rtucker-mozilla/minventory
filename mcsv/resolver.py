@@ -259,6 +259,7 @@ class Resolver(Generics):
         if they don't exist.
         """
         fields = map(lambda s: s.strip(), field.split('%'))
+        fields = list(fields)
         if '%' not in field or len(fields) < 1:
             raise ValidationError(
                 "We need to determine what fields to search for when looking "
