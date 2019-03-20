@@ -2,6 +2,7 @@ import operator
 import re
 import csv
 import io
+import datetime
 
 from django.core.exceptions import ValidationError
 from mcsv.resolver import Resolver
@@ -223,6 +224,8 @@ def csv_import(csv_text, save=True, primary_attr='hostname'):
             orig_system = None
 
         if save:
+            if not s.created_on:
+                s.created_on = datetime.datetime.now()
             s.save()
         kvs = []
         for cb in kv_callbacks:
