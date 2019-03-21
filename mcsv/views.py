@@ -1,19 +1,10 @@
+import simplejson as json
 from django.core.exceptions import ValidationError
-from django.db import transaction
-from django.db.utils import DatabaseError
 from django.shortcuts import render
 from django.http import HttpResponse
-
 from mcsv.importer import csv_import, Resolver, Generator
 from mcsv.exporter import csv_export, export_classes
-
 from systems.models import System
-
-
-import csv
-import re
-from io import StringIO
-import simplejson as json
 
 
 def csv_importer(request):
@@ -36,7 +27,7 @@ def ajax_csv_importer(request):
         except ValidationError as e:
             #transaction.rollback()
             return {'error': str(e)}
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-except
             #transaction.rollback()
             return {'error': ['Error: ' + str(e)]}
         # finally:
