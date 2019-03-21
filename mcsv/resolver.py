@@ -275,7 +275,7 @@ class Resolver(Generics):
 
         try:
             obj = self.get_realted_from_dict(search, Klass)
-        except (FieldError, e):
+        except FieldError as e:
             raise Exception(
                 "When trying to use resolve a(n) {0}, got the error "
                 "{1}".format(Klass.__name__, str(e))
