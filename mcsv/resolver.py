@@ -1,3 +1,5 @@
+import re
+import datetime
 # Reference for relationships and fields:
 # http://people.mozilla.com/~juber/public/inventory.png
 
@@ -6,12 +8,10 @@ from django.core.exceptions import (
 )
 from systems import models as sys_models
 
-import datetime
-import re
 
 
 class Generics(object):
-    def generic_integer(self, name, values, default=None):
+    def generic_integer(self, name, values):
         def validate(s, value):
             if not value.isdigit():
                 raise ValidationError(
@@ -26,7 +26,7 @@ class Generics(object):
         }
         return bundle
 
-    def generic_float(self, name, values, default=None):
+    def generic_float(self, name, values):
         def validate(s, value):
             try:
                 value = str(float(value))
@@ -44,7 +44,7 @@ class Generics(object):
         }
         return bundle
 
-    def generic_char(self, name, values, default=None):
+    def generic_char(self, name, values):
         bundle = {
             'name': name,
             'values': values,
@@ -95,17 +95,17 @@ class Resolver(Generics):
 
     system_kv_patterns = []
     for key_type in (
-        'mac_address', 'ip_address', 'name', 'hostname', 'dhcp_scope',
-        'option_hostname', 'dhcp_filename', 'dhcp_domain_name',
-        'dhcp_domain_name_servers'
+            'mac_address', 'ip_address', 'name', 'hostname', 'dhcp_scope',
+            'option_hostname', 'dhcp_filename', 'dhcp_domain_name',
+            'dhcp_domain_name_servers'
     ):
-        system_kv_patterns.append('nic.\d+.{0}.\d+'.format(key_type))
-        system_kv_patterns.append('mgmt.\d+.{0}.\d+'.format(key_type))
-    system_kv_patterns.append('system.hostname.alias.\d+')
+        system_kv_patterns.append(r'nic.\d+.{0}.\d+'.format(key_type))
+        system_kv_patterns.append(r'mgmt.\d+.{0}.\d+'.format(key_type))
+    system_kv_patterns.append(r'system.hostname.alias.\d+')
 
     @meta
-    def primary_attribute(self, **kwargs):
-        def _primary_attribute(s, header, value, **kwargs):
+    def primary_attribute(self):
+        def _primary_attribute(s, header, value):
             try:
                 _, s._primary_attr = map(
                     lambda s: s.strip(), header.split('%')
@@ -115,9 +115,9 @@ class Resolver(Generics):
                     "The primary_attribute header must be in the form "
                     "'primary_attribute%<system-attribute-header>'"
                 )
-            s._primary_value = getattr(
+            s._primary_value = getattr( # pylint: disable=protected-access
                 self.get_related(header, value, sys_models.System),
-                s._primary_attr
+                s._primary_attr # pylint: disable=protected-access
             )
             return s
 
@@ -130,7 +130,7 @@ class Resolver(Generics):
         return bundle
 
     @system_kv
-    def all_system_keyvalue(self, **kwargs):
+    def all_system_keyvalue(self):
         patterns = []
         for key_pattern in self.system_kv_patterns:
             patterns.append(re.compile(key_pattern))
@@ -215,7 +215,7 @@ class Resolver(Generics):
         return self.generic_char(name, values, **kwargs)
 
     def gen_parse_date(self, field):
-        def parse_date(s, value, **kwargs):
+        def parse_date(s, value):
             d = datetime.datetime.strptime(value, "%Y-%m-%d").date()
             setattr(s, field, d)
             return s
@@ -253,14 +253,14 @@ class Resolver(Generics):
             return obj
         self.cannot_find(field, value)
 
-    def get_related(self, field, value, Klass, delimiter='%'):
+    def get_related(self, field, value, Klass):
         """
         Try to find delimited headers, fall back to normal get_realted_simple
         if they don't exist.
         """
         fields = map(lambda s: s.strip(), field.split('%'))
         fields = list(fields)
-        if '%' not in field or len(fields) < 1:
+        if '%' not in field or not fields:
             raise ValidationError(
                 "We need to determine what fields to search for when looking "
                 "for objects coresponding to the {0} header. Please specify "
@@ -296,12 +296,11 @@ class Resolver(Generics):
         except Klass.DoesNotExist:
             pass
 
-    # XXX this should really be in the classes themselves
     def get_field_names(self, Klass):
         return [field.name for field in Klass._meta.fields]
 
     @system_related
-    def systemrack(self, **kwargs):
+    def systemrack(self):
         def _systemrack(s, header, value):
             s.system_rack = self.get_related(
                 header, value, sys_models.SystemRack
@@ -320,7 +319,7 @@ class Resolver(Generics):
         return bundle
 
     @system_related
-    def system_status(self, **kwargs):
+    def system_status(self):
         def _system_status(s, header, value):
             s.system_status = self.get_related(
                 header, value, sys_models.SystemStatus
@@ -335,7 +334,7 @@ class Resolver(Generics):
         return bundle
 
     @system_related
-    def server_model(self, **kwargs):
+    def server_model(self):
         def _server_model(s, header, value):
             s.server_model = self.get_related(
                 header, value, sys_models.ServerModel
@@ -350,7 +349,7 @@ class Resolver(Generics):
         return bundle
 
     @system_related
-    def operating_system(self, **kwargs):
+    def operating_system(self):
         def _operating_system(s, header, value):
             sm = self.get_related(header, value, sys_models.OperatingSystem)
             s.operating_system = sm
@@ -364,7 +363,7 @@ class Resolver(Generics):
         return bundle
 
     @system_related
-    def system_type(self, **kwargs):
+    def system_type(self):
         def _system_type(s, header, value):
             s.system_type = self.get_related(
                 header, value, sys_models.SystemType
