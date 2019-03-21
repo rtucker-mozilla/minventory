@@ -203,6 +203,18 @@ class Resolver(Generics):
         return self.generic_char(name, values, **kwargs)
 
     @system_attr
+    def pdu1(self, **kwargs):
+        name = 'pdu1'
+        values = ['pdu1']
+        return self.generic_char(name, values, **kwargs)
+
+    @system_attr
+    def pdu2(self, **kwargs):
+        name = 'pdu2'
+        values = ['pdu2']
+        return self.generic_char(name, values, **kwargs)
+
+    @system_attr
     def hostname(self, **kwargs):
         name = 'hostname'
         values = ['host_name', 'hostname']
