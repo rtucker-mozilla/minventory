@@ -3,27 +3,24 @@ import re
 import csv
 import io
 import datetime
+import functools
 
 from django.core.exceptions import ValidationError
 from mcsv.resolver import Resolver
 from systems import models as sys_models
-import functools
-
-# XXX so much stripping going on
-
 
 class MockSystem(object):
     """
     A fake system where we can stage changes
     """
-    pass
+    pass # pylint: disable=unnecessary-pass
 
 
 class Generator(object):
     def __init__(self, resolver, headers, delimiter=','):
         self.r = resolver
         self.headers = headers
-        self.delimiter = ','
+        self.delimiter = delimiter
 
         self.meta_bundles = [
             (handle, b(self.r))
@@ -76,11 +73,11 @@ class Generator(object):
         action_list = []
         fail = False
         for (header, raw_header) in headers:
-            header = header.replace(" ","_")
+            header = header.replace(" ", "_")
             found_handler = False
 
             for (phase, bundle_list) in enumerate(bundle_lists):
-                for handle, bundle in bundle_list:
+                for _, bundle in bundle_list:
                     def re_in(header):
                         """
                         This function is only called when a bundle doesn't
@@ -90,7 +87,7 @@ class Generator(object):
                             re.search('^{0}$'.format(header), el)
                         )
                         return functools.reduce(
-                            operator.or_, map(c, bundle['values']), False
+                            operator.or_, map(c, bundle['values']), False # pylint: disable=cell-var-from-loop
                         )
 
                     handler_matches = bundle.get('match_func', re_in)
@@ -204,11 +201,11 @@ def csv_import(csv_text, save=True, primary_attr='hostname'):
         try:
             if hasattr(mock_s, '_primary_attr'):
                 get_params = {
-                    mock_s._primary_attr: mock_s._primary_value
+                    mock_s._primary_attr: mock_s._primary_value # pylint: disable=protected-access
                 }
             else:
                 get_params = {
-                    primary_attr: getattr(mock_s, primary_attr)
+                    primary_attr: getattr(mock_s, primary_attr) # pylint: disable=protected-access
                 }
 
             s = sys_models.System.objects.get(**get_params)
@@ -240,4 +237,4 @@ def main(fname):
     with open(fname, 'r') as fd:
         csv_import(fd.readlines())
 
-    print(query.strip(' OR '))
+    print(query.strip(' OR ')) # pylint: disable=bad-str-strip-call

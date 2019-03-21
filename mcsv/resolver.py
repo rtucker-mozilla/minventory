@@ -76,9 +76,9 @@ class Generics(object):
 
 
 class Resolver(Generics):
-    def make_tagger(tagged_methods):
+    def make_tagger(tagged_methods): # pylint: disable=no-self-argument
         def tag(func):
-            tagged_methods[func.__name__] = func
+            tagged_methods[func.__name__] = func # pylint: disable=unsupported-assignment-operation
             return func
         return tag
     metas = {}
