@@ -830,7 +830,7 @@ def racks(request):
         l_racks = [(k, list(k.system_set.select_related(
             'server_model',
             'system_status',
-        ).filter(system_query).order_by('rack_order'))) for k in l_racks]
+        ).filter(system_query).order_by('-rack_order'))) for k in l_racks]
 
     return render_to_response('systems/racks.html', {
         'racks': l_racks,
