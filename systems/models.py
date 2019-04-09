@@ -638,7 +638,7 @@ class SystemRack(models.Model):
 
     class Meta:
         db_table = u'system_racks'
-        ordering = ['name']
+        ordering = ['site__name','name']
         unique_together = ('name', 'site',)
 
     def __str__(self):
@@ -646,7 +646,6 @@ class SystemRack(models.Model):
             return "{} - {}".format(self.site.name, self.name)
         else:
             return "{}".format(self.name)
-            )
 
     @classmethod
     def get_api_fields(cls):
