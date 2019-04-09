@@ -638,7 +638,7 @@ class SystemRack(models.Model):
 
     class Meta:
         db_table = u'system_racks'
-        ordering = ['site__name','name']
+        ordering = ['name']
         unique_together = ('name', 'site',)
 
     def __str__(self):
