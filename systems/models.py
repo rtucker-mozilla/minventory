@@ -638,14 +638,15 @@ class SystemRack(models.Model):
 
     class Meta:
         db_table = u'system_racks'
-        ordering = ['name']
+        ordering = ['site__name','name']
         unique_together = ('name', 'site',)
 
     def __str__(self):
-        return "%s" % (
-            #self.name, self.site.full_name if self.site else ''
-            self.name
-        )
+        if self.site:
+            return "{} - {}".format(self.site.name, self.name)
+        else:
+            return "{}".format(self.name)
+            )
 
     @classmethod
     def get_api_fields(cls):
